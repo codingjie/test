@@ -3,43 +3,43 @@
 
 #include "stm32f4xx.h"
 
-/* Protocol definition */
-#define PROTOCOL_HEAD           0xAA    // Frame header
-#define PROTOCOL_TAIL           0x55    // Frame tail
+/* 通信协议定义 */
+#define PROTOCOL_HEAD           0xAA    // 帧头
+#define PROTOCOL_TAIL           0x55    // 帧尾
 
-/* Command codes */
-#define CMD_SET_MODE            0x01    // Set work mode
-#define CMD_SET_BRIGHTNESS      0x02    // Set brightness
-#define CMD_QUERY_STATUS        0x03    // Query status
-#define CMD_SET_SITTING_CFG     0x04    // Set sitting reminder config
-#define CMD_SAVE_CONFIG         0x05    // Save configuration
-#define CMD_RESET_CONFIG        0x06    // Reset configuration
-#define CMD_QUERY_ENV           0x07    // Query environment data
+/* 命令码定义 */
+#define CMD_SET_MODE            0x01    // 设置模式
+#define CMD_SET_BRIGHTNESS      0x02    // 设置亮度
+#define CMD_QUERY_STATUS        0x03    // 查询状态
+#define CMD_SET_SITTING_CFG     0x04    // 设置久坐配置
+#define CMD_SAVE_CONFIG         0x05    // 保存配置
+#define CMD_RESET_CONFIG        0x06    // 重置配置
+#define CMD_QUERY_ENV           0x07    // 查询环境信息
 
-/* Response codes */
-#define ACK_OK                  0x00    // Execute success
-#define ACK_ERROR               0x01    // Execute failed
-#define ACK_INVALID_CMD         0x02    // Invalid command
-#define ACK_CRC_ERROR           0x03    // CRC check failed
+/* 应答码定义 */
+#define ACK_OK                  0x00    // 执行成功
+#define ACK_ERROR               0x01    // 执行失败
+#define ACK_INVALID_CMD         0x02    // 无效命令
+#define ACK_CRC_ERROR           0x03    // CRC校验失败
 
-/* Protocol frame structure */
+/* 通信协议数据结构 */
 #pragma pack(1)
 typedef struct {
-    uint8_t head;           // Frame header 0xAA
-    uint8_t cmd;            // Command code
-    uint8_t length;         // Data length
-    uint8_t data[32];       // Data payload
-    uint16_t crc;           // CRC16 checksum
-    uint8_t tail;           // Frame tail 0x55
+    uint8_t head;           // 帧头 0xAA
+    uint8_t cmd;            // 命令码
+    uint8_t length;         // 数据长度
+    uint8_t data[32];       // 数据载荷
+    uint16_t crc;           // CRC校验值
+    uint8_t tail;           // 帧尾 0x55
 } Protocol_Frame_TypeDef;
 #pragma pack()
 
-/* DMA receive buffer size */
+/* DMA接收缓冲区大小 */
 #define USART_RX_BUFFER_SIZE    128
 extern uint8_t usart_rx_buffer[USART_RX_BUFFER_SIZE];
 extern volatile uint8_t usart_rx_flag;
 
-/* Function prototypes */
+/* 函数声明 */
 void USART_Protocol_Init(void);
 void USART_DMA_Config(void);
 uint16_t CRC16_Calculate(uint8_t *data, uint16_t length);

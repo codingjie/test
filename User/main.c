@@ -1,7 +1,7 @@
-/* FreeRTOS headers */
+/* FreeRTOS头文件 */
 #include "FreeRTOS.h"
 #include "task.h"
-/* Hardware BSP headers */
+/* 开发板硬件bsp头文件 */
 #include "stm32f4xx.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +21,7 @@
 #include "usart_protocol.h"
 #include "app_tasks.h"
 
-/* Task handles */
+/* 任务句柄 */
 static TaskHandle_t AppTaskCreate_Handle = NULL;
 static TaskHandle_t Manual_Mode_Task_Handle = NULL;
 static TaskHandle_t Energy_Save_Mode_Task_Handle = NULL;
@@ -30,23 +30,23 @@ static TaskHandle_t Sitting_Reminder_Task_Handle = NULL;
 static TaskHandle_t Environment_Monitor_Task_Handle = NULL;
 static TaskHandle_t UI_Manager_Task_Handle = NULL;
 
-/* Function prototypes */
+/* 函数声明 */
 static void AppTaskCreate(void);
 
-/* Global variables */
+/* 全局变量 */
 int16_t brightness = 20;
 uint8_t mode = 0;
 uint8_t sw_key_flag = 0;
 
 /**
- * @brief  Main function
- * @param  None
+ * @brief  主函数
+ * @param  无
  * @retval int
  */
 int main(void) {
     BaseType_t xReturn = pdPASS;
 
-    /* Initialize hardware */
+    /* 开发板硬件初始化 */
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
     CPU_TS_TmrInit();
     LED_PWM_Config();
@@ -62,19 +62,19 @@ int main(void) {
     PhotoResistor_Init();
     TIMX_Encoder_Init();
 
-    /* Initialize system configuration and protocol */
+    /* 初始化系统配置和串口协议 */
     SystemConfig_Init();
     USART_Protocol_Init();
 
-    /* Load saved configuration */
+    /* 加载保存的配置参数 */
     g_current_work_mode = g_system_config.work_mode;
     g_brightness = g_system_config.brightness;
 
-    /* Display welcome message */
+    /* 显示欢迎信息 */
     OLED_ShowStr(0, 0, (unsigned char *)"Smart Light", 2);
     OLED_ShowStr(0, 2, (unsigned char *)"System Init", 2);
 
-    /* Create AppTaskCreate task */
+    /* 创建AppTaskCreate任务 */
     xReturn = xTaskCreate((TaskFunction_t)AppTaskCreate,
                     (const char *)"AppTaskCreate",
                     (uint16_t)512,
@@ -82,7 +82,7 @@ int main(void) {
                     (UBaseType_t)1,
                     (TaskHandle_t *)&AppTaskCreate_Handle);
 
-    /* Start scheduler */
+    /* 启动调度器 */
     if (pdPASS == xReturn)
         vTaskStartScheduler();
     else
@@ -92,16 +92,16 @@ int main(void) {
 }
 
 /**
- * @brief  Create application tasks
- * @param  None
- * @retval None
+ * @brief  创建应用任务
+ * @param  无
+ * @retval 无
  */
 static void AppTaskCreate(void) {
     BaseType_t xReturn = pdPASS;
 
     taskENTER_CRITICAL();
 
-    /* Create manual mode task */
+    /* 创建手动模式任务 */
     xReturn = xTaskCreate((TaskFunction_t)Task_Manual_Mode,
                     (const char *)"Manual_Mode",
                     (uint16_t)512,
@@ -109,9 +109,9 @@ static void AppTaskCreate(void) {
                     (UBaseType_t)3,
                     (TaskHandle_t *)&Manual_Mode_Task_Handle);
     if (pdPASS == xReturn)
-        printf("Create Manual Mode Task Success!\r\n");
+        printf("创建手动模式任务成功!\r\n");
 
-    /* Create energy save mode task */
+    /* 创建节能模式任务 */
     xReturn = xTaskCreate((TaskFunction_t)Task_Energy_Save_Mode,
                     (const char *)"Energy_Save",
                     (uint16_t)512,
@@ -119,9 +119,9 @@ static void AppTaskCreate(void) {
                     (UBaseType_t)3,
                     (TaskHandle_t *)&Energy_Save_Mode_Task_Handle);
     if (pdPASS == xReturn)
-        printf("Create Energy Save Mode Task Success!\r\n");
+        printf("创建节能模式任务成功!\r\n");
 
-    /* Create auto mode task */
+    /* 创建自动模式任务 */
     xReturn = xTaskCreate((TaskFunction_t)Task_Auto_Mode,
                     (const char *)"Auto_Mode",
                     (uint16_t)512,
@@ -129,9 +129,9 @@ static void AppTaskCreate(void) {
                     (UBaseType_t)3,
                     (TaskHandle_t *)&Auto_Mode_Task_Handle);
     if (pdPASS == xReturn)
-        printf("Create Auto Mode Task Success!\r\n");
+        printf("创建自动模式任务成功!\r\n");
 
-    /* Create sitting reminder task */
+    /* 创建久坐提醒任务 */
     xReturn = xTaskCreate((TaskFunction_t)Task_Sitting_Reminder,
                     (const char *)"Sitting_Reminder",
                     (uint16_t)512,
@@ -139,9 +139,9 @@ static void AppTaskCreate(void) {
                     (UBaseType_t)2,
                     (TaskHandle_t *)&Sitting_Reminder_Task_Handle);
     if (pdPASS == xReturn)
-        printf("Create Sitting Reminder Task Success!\r\n");
+        printf("创建久坐提醒任务成功!\r\n");
 
-    /* Create environment monitor task */
+    /* 创建环境监测任务 */
     xReturn = xTaskCreate((TaskFunction_t)Task_Environment_Monitor,
                     (const char *)"Env_Monitor",
                     (uint16_t)512,
@@ -149,9 +149,9 @@ static void AppTaskCreate(void) {
                     (UBaseType_t)2,
                     (TaskHandle_t *)&Environment_Monitor_Task_Handle);
     if (pdPASS == xReturn)
-        printf("Create Environment Monitor Task Success!\r\n");
+        printf("创建环境监测任务成功!\r\n");
 
-    /* Create UI manager task */
+    /* 创建UI管理任务 */
     xReturn = xTaskCreate((TaskFunction_t)Task_UI_Manager,
                     (const char *)"UI_Manager",
                     (uint16_t)512,
@@ -159,7 +159,7 @@ static void AppTaskCreate(void) {
                     (UBaseType_t)4,
                     (TaskHandle_t *)&UI_Manager_Task_Handle);
     if (pdPASS == xReturn)
-        printf("Create UI Manager Task Success!\r\n");
+        printf("创建UI管理任务成功!\r\n");
 
     vTaskDelete(AppTaskCreate_Handle);
 

@@ -145,7 +145,7 @@ void DebugMon_Handler(void)
   * @retval None
   */
 extern void xPortSysTickHandler(void);
-//systick锟叫断凤拷锟斤拷锟斤拷
+// systick中断服务函数
 void SysTick_Handler(void)
 {	
     #if (INCLUDE_xTaskGetSchedulerState  == 1 )
@@ -187,7 +187,7 @@ void EXTI15_10_IRQHandler(void) {
 void EXTI9_5_IRQHandler(void) {
     if (EXTI_GetITStatus(EXTI_Line8) != RESET) {
         sw_key_flag = 1;
-        g_encoder_pressed = 1;  /* Set encoder pressed flag */
+        g_encoder_pressed = 1;  /* 设置编码器按下标志 */
         EXTI_ClearITPendingBit(EXTI_Line8);
     }
 }
@@ -217,9 +217,9 @@ void macESP8266_USART_INT_FUN ( void )
 }
 
 /**
-  * @brief  USART1 IDLE interrupt handler (IDLE + DMA)
-  * @param  None
-  * @retval None
+  * @brief  USART1空闲中断处理(IDLE中断+DMA)
+  * @param  无
+  * @retval 无
   */
 void USART1_IRQHandler(void)
 {
@@ -227,25 +227,25 @@ void USART1_IRQHandler(void)
     uint16_t recv_len;
 
     if(USART_GetITStatus(USART1, USART_IT_IDLE) != RESET) {
-        /* Clear IDLE interrupt */
+        /* 清除IDLE中断 */
         temp = USART1->SR;
         temp = USART1->DR;
 
-        /* Disable DMA */
+        /* 停止DMA传输 */
         DMA_Cmd(DMA2_Stream2, DISABLE);
 
-        /* Calculate received data length */
+        /* 计算接收数据长度 */
         recv_len = USART_RX_BUFFER_SIZE - DMA_GetCurrDataCounter(DMA2_Stream2);
 
         if(recv_len > 0) {
-            /* Parse protocol frame */
+            /* 解析协议帧 */
             Protocol_ParseFrame(usart_rx_buffer, recv_len);
 
-            /* Clear receive buffer */
+            /* 清空接收缓冲 */
             memset(usart_rx_buffer, 0, USART_RX_BUFFER_SIZE);
         }
 
-        /* Re-enable DMA */
+        /* 重启DMA */
         DMA_SetCurrDataCounter(DMA2_Stream2, USART_RX_BUFFER_SIZE);
         DMA_Cmd(DMA2_Stream2, ENABLE);
     }

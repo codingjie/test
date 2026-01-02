@@ -2,33 +2,33 @@
 #include "bsp_spi_flash.h"
 #include <string.h>
 
-/* Global system configuration */
+/* 全局系统配置变量 */
 SystemConfig_TypeDef g_system_config;
 
 /**
- * @brief  Initialize system configuration
- * @param  None
- * @retval None
+ * @brief  初始化系统配置
+ * @param  无
+ * @retval 无
  */
 void SystemConfig_Init(void) {
     SystemConfig_Load(&g_system_config);
 }
 
 /**
- * @brief  Load configuration from Flash
- * @param  config: Pointer to configuration structure
- * @retval None
+ * @brief  从Flash加载配置
+ * @param  config: 指向配置结构体的指针
+ * @retval 无
  */
 void SystemConfig_Load(SystemConfig_TypeDef *config) {
     uint8_t buffer[sizeof(SystemConfig_TypeDef)];
 
-    /* Read configuration from Flash */
+    /* 从Flash读取配置 */
     SPI_FLASH_BufferRead(buffer, SYSTEM_CONFIG_FLASH_ADDR, sizeof(SystemConfig_TypeDef));
 
-    /* Copy data to structure */
+    /* 复制数据到结构体 */
     memcpy(config, buffer, sizeof(SystemConfig_TypeDef));
 
-    /* Validate magic number, use default if invalid */
+    /* 校验魔术数，如果无效则使用默认配置 */
     if (config->magic_number != CONFIG_MAGIC_NUMBER) {
         SystemConfig_SetDefault(config);
         SystemConfig_Save(config);
@@ -36,28 +36,28 @@ void SystemConfig_Load(SystemConfig_TypeDef *config) {
 }
 
 /**
- * @brief  Save configuration to Flash
- * @param  config: Pointer to configuration structure
- * @retval None
+ * @brief  保存配置到Flash
+ * @param  config: 指向配置结构体的指针
+ * @retval 无
  */
 void SystemConfig_Save(SystemConfig_TypeDef *config) {
     uint8_t buffer[sizeof(SystemConfig_TypeDef)];
 
-    /* Set magic number */
+    /* 设置魔术数 */
     config->magic_number = CONFIG_MAGIC_NUMBER;
 
-    /* Copy data to buffer */
+    /* 复制数据到缓冲区 */
     memcpy(buffer, config, sizeof(SystemConfig_TypeDef));
 
-    /* Erase sector and write to Flash */
+    /* 擦除扇区并写入Flash */
     SPI_FLASH_SectorErase(SYSTEM_CONFIG_FLASH_ADDR);
     SPI_FLASH_BufferWrite(buffer, SYSTEM_CONFIG_FLASH_ADDR, sizeof(SystemConfig_TypeDef));
 }
 
 /**
- * @brief  Set default configuration
- * @param  config: Pointer to configuration structure
- * @retval None
+ * @brief  设置默认配置
+ * @param  config: 指向配置结构体的指针
+ * @retval 无
  */
 void SystemConfig_SetDefault(SystemConfig_TypeDef *config) {
     config->work_mode = DEFAULT_WORK_MODE;
