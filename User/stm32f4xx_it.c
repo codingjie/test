@@ -38,24 +38,20 @@
 #include "usart_protocol.h"
 #include "app_tasks.h"
 
-#include "FreeRTOS.h"		   //FreeRTOSʹ��
-#include "task.h" 
+#include "FreeRTOS.h"
+#include "task.h"
 
-#define TASK_DELAY_NUM  2      //����������������Լ�����ʵ������޸�
-#define TASK_DELAY_0    200    //����0��ʱ 200*10 �����ִ�У���ȡ DHT11 ����������
-#define TASK_DELAY_1    50     //����1��ʱ 50*10 �����ִ�У�
+#define TASK_DELAY_NUM  2
+#define TASK_DELAY_0    200
+#define TASK_DELAY_1    50
 
-uint32_t Task_Delay_Group[TASK_DELAY_NUM];  //�������飬������ʱ�����ж��Ƿ�ִ�ж�Ӧ����
+uint32_t Task_Delay_Group[TASK_DELAY_NUM];
 
-/* ��������������ɱ�־ */
-// - ��־�� 1��ʾ��ɶ�ȡ������ѭ����������
-// - ��־�� 0��ʾδ��ɶ�ȡ
-// - ��־��-1��ʾ��ȡ����
+/* DHT11 read finish flag */
 int read_dht11_finish;
 extern int16_t brightness;
 extern uint8_t sw_key_flag;
 
-// �ⲿ����
 extern DHT11_Data_TypeDef DHT11_Data;
 
 /** @addtogroup STM32F429I_DISCOVERY_Examples
@@ -173,26 +169,25 @@ void SysTick_Handler(void)
   * @}
   */ 
 void EXTI0_IRQHandler(void) {
-    if(EXTI_GetITStatus(EXTI_Line0) != RESET) { // ��
+    if(EXTI_GetITStatus(EXTI_Line0) != RESET) {
         brightness += 20;
-        if (brightness > 99) brightness = 99; 
-        EXTI_ClearITPendingBit(EXTI_Line0); // �����־λ
+        if (brightness > 99) brightness = 99;
+        EXTI_ClearITPendingBit(EXTI_Line0);
     }
 }
 
 void EXTI15_10_IRQHandler(void) {
-    if(EXTI_GetITStatus(EXTI_Line13) != RESET) { // ��
+    if(EXTI_GetITStatus(EXTI_Line13) != RESET) {
         brightness -= 20;
         if (brightness < 0) brightness = 0;
-        EXTI_ClearITPendingBit(EXTI_Line13); // �����־λ
+        EXTI_ClearITPendingBit(EXTI_Line13);
     }
 }
 
 void EXTI9_5_IRQHandler(void) {
     if (EXTI_GetITStatus(EXTI_Line8) != RESET) {
         sw_key_flag = 1;
-        g_encoder_pressed = 1;  // ����������־
-        /* ����жϱ�־λ */
+        g_encoder_pressed = 1;  /* Set encoder pressed flag */
         EXTI_ClearITPendingBit(EXTI_Line8);
     }
 }
@@ -206,23 +201,23 @@ void macESP8266_USART_INT_FUN ( void )
 	{
 		ucCh  = USART_ReceiveData( macESP8266_USARTx );
 
-		if ( strEsp8266_Fram_Record .InfBit .FramLength < ( RX_BUF_MAX_LEN - 1 ) )                       //Ԥ��1���ֽ�д������
+		if ( strEsp8266_Fram_Record .InfBit .FramLength < ( RX_BUF_MAX_LEN - 1 ) )
 			strEsp8266_Fram_Record .Data_RX_BUF [ strEsp8266_Fram_Record .InfBit .FramLength ++ ]  = ucCh;
 
 	}
 
-	if ( USART_GetITStatus( macESP8266_USARTx, USART_IT_IDLE ) == SET )                                         //����֡�������
+	if ( USART_GetITStatus( macESP8266_USARTx, USART_IT_IDLE ) == SET )
 	{
     strEsp8266_Fram_Record .InfBit .FramFinishFlag = 1;
 
-		ucCh = USART_ReceiveData( macESP8266_USARTx );                                                              //��������������жϱ�־λ(�ȶ�USART_SR��Ȼ���USART_DR)
+		ucCh = USART_ReceiveData( macESP8266_USARTx );
 
   }
 
 }
 
 /**
-  * @brief  USART1�����ж�(IDLE�ж�+DMA)
+  * @brief  USART1 IDLE interrupt handler (IDLE + DMA)
   * @param  None
   * @retval None
   */
@@ -232,25 +227,25 @@ void USART1_IRQHandler(void)
     uint16_t recv_len;
 
     if(USART_GetITStatus(USART1, USART_IT_IDLE) != RESET) {
-        /* ����IDLE�ж� */
+        /* Clear IDLE interrupt */
         temp = USART1->SR;
         temp = USART1->DR;
 
-        /* ֹͣDMA���� */
+        /* Disable DMA */
         DMA_Cmd(DMA2_Stream2, DISABLE);
 
-        /* �������ݳ��� */
+        /* Calculate received data length */
         recv_len = USART_RX_BUFFER_SIZE - DMA_GetCurrDataCounter(DMA2_Stream2);
 
         if(recv_len > 0) {
-            /* �������� */
+            /* Parse protocol frame */
             Protocol_ParseFrame(usart_rx_buffer, recv_len);
 
-            /* ���������� */
+            /* Clear receive buffer */
             memset(usart_rx_buffer, 0, USART_RX_BUFFER_SIZE);
         }
 
-        /* ����DMA */
+        /* Re-enable DMA */
         DMA_SetCurrDataCounter(DMA2_Stream2, USART_RX_BUFFER_SIZE);
         DMA_Cmd(DMA2_Stream2, ENABLE);
     }
