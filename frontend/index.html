@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>豆瓣帖子情感分析可视化</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .chart-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+        
+        .chart {
+            width: 100%;
+            height: 400px;
+        }
+        
+        .chart-large {
+            height: 500px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.2em;
+        }
+        
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .refresh-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 豆瓣帖子情感分析</h1>
+            <p>多维度情感数据可视化分析</p>
+            <button class="refresh-btn" onclick="refreshData()">🔄 刷新数据</button>
+        </div>
+        
+        <div id="loading" class="loading">正在加载数据...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="content" style="display: none;">
+            <!-- 统计卡片 -->
+            <div class="stats-grid" id="statsGrid"></div>
+            
+            <!-- 图表容器 -->
+            <div class="chart-container">
+                <div class="chart-title">整体情感分布</div>
+                <div id="sentimentChart" class="chart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">情感得分分布</div>
+                <div id="scoreChart" class="chart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">关键词权重排名（Top 30）</div>
+                <div id="keywordChart" class="chart chart-large"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">时间维度情感变化</div>
+                <div id="timeChart" class="chart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">帖子情感分类统计</div>
+                <div id="postChart" class="chart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let overallData = null;
+        let postsData = null;
+        let keywordsData = null;
+        
+        // 初始化
+        async function init() {
+            try {
+                await loadData();
+                renderStats();
+                renderCharts();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = '加载数据失败: ' + error.message;
+            }
+        }
+        
+        // 加载数据
+        async function loadData() {
+            const [overall, posts, keywords] = await Promise.all([
+                fetch('/api/overall').then(r => r.json()),
+                fetch('/api/posts').then(r => r.json()),
+                fetch('/api/keywords').then(r => r.json())
+            ]);
+            
+            overallData = overall;
+            postsData = posts;
+            keywordsData = keywords;
+        }
+        
+        // 刷新数据
+        async function refreshData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            try {
+                await fetch('/api/refresh');
+                await loadData();
+                renderStats();
+                renderCharts();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = '刷新数据失败: ' + error.message;
+            }
+        }
+        
+        // 渲染统计卡片
+        function renderStats() {
+            const stats = overallData;
+            const statsGrid = document.getElementById('statsGrid');
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <h3>总帖子数</h3>
+                    <div class="value">${stats.total_posts}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>总评论数</h3>
+                    <div class="value">${stats.total_comments}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>平均情感得分</h3>
+                    <div class="value">${stats.avg_sentiment_score.toFixed(3)}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>正面帖子</h3>
+                    <div class="value">${stats.posts_by_sentiment.positive?.length || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>负面帖子</h3>
+                    <div class="value">${stats.posts_by_sentiment.negative?.length || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>中性帖子</h3>
+                    <div class="value">${stats.posts_by_sentiment.neutral?.length || 0}</div>
+                </div>
+            `;
+        }
+        
+        // 渲染图表
+        function renderCharts() {
+            renderSentimentChart();
+            renderScoreChart();
+            renderKeywordChart();
+            renderTimeChart();
+            renderPostChart();
+        }
+        
+        // 情感分布饼图
+        function renderSentimentChart() {
+            const chart = echarts.init(document.getElementById('sentimentChart'));
+            const dist = overallData.sentiment_distribution;
+            
+            chart.setOption({
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{b}: {c} ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left'
+                },
+                series: [{
+                    name: '情感分布',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 10,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: true,
+                        formatter: '{b}\n{c} ({d}%)'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 20,
+                            fontWeight: 'bold'
+                        }
+                    },
+                    data: [
+                        { value: dist.positive, name: '正面', itemStyle: { color: '#52c41a' } },
+                        { value: dist.negative, name: '负面', itemStyle: { color: '#ff4d4f' } },
+                        { value: dist.neutral, name: '中性', itemStyle: { color: '#faad14' } }
+                    ]
+                }]
+            });
+        }
+        
+        // 情感得分分布直方图
+        function renderScoreChart() {
+            const chart = echarts.init(document.getElementById('scoreChart'));
+            const scores = postsData.map(p => p.overall_statistics.avg_sentiment_score);
+            
+            // 分桶统计
+            const bins = Array(20).fill(0);
+            scores.forEach(score => {
+                const binIndex = Math.min(Math.floor(score * 20), 19);
+                bins[binIndex]++;
+            });
+            
+            chart.setOption({
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: bins.map((_, i) => (i / 20).toFixed(2)),
+                    name: '情感得分'
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '帖子数量'
+                },
+                series: [{
+                    name: '帖子数',
+                    type: 'bar',
+                    data: bins,
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: '#667eea' },
+                            { offset: 1, color: '#764ba2' }
+                        ])
+                    }
+                }]
+            });
+        }
+        
+        // 关键词柱状图（因为词云需要额外插件，改用柱状图）
+        function renderKeywordChart() {
+            const chart = echarts.init(document.getElementById('keywordChart'));
+            const topKeywords = keywordsData.slice(0, 30);
+            
+            chart.setOption({
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                grid: {
+                    left: '15%',
+                    right: '10%'
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '权重'
+                },
+                yAxis: {
+                    type: 'category',
+                    data: topKeywords.map(kw => kw.word).reverse(),
+                    axisLabel: {
+                        interval: 0
+                    }
+                },
+                series: [{
+                    name: '关键词权重',
+                    type: 'bar',
+                    data: topKeywords.map(kw => kw.weight).reverse(),
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                            { offset: 0, color: '#667eea' },
+                            { offset: 1, color: '#764ba2' }
+                        ])
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{c}'
+                    }
+                }]
+            });
+        }
+        
+        // 时间维度情感变化
+        function renderTimeChart() {
+            const chart = echarts.init(document.getElementById('timeChart'));
+            
+            // 收集所有时间数据
+            const timeData = [];
+            postsData.forEach(post => {
+                post.time_sentiments.forEach(ts => {
+                    timeData.push({
+                        time: ts.time,
+                        score: ts.score,
+                        sentiment: ts.sentiment
+                    });
+                });
+            });
+            
+            // 按时间排序
+            timeData.sort((a, b) => new Date(a.time) - new Date(b.time));
+            
+            // 分组统计（按小时）
+            const hourlyData = {};
+            timeData.forEach(item => {
+                const hour = new Date(item.time).toISOString().slice(0, 13);
+                if (!hourlyData[hour]) {
+                    hourlyData[hour] = { scores: [], count: 0 };
+                }
+                hourlyData[hour].scores.push(item.score);
+                hourlyData[hour].count++;
+            });
+            
+            const hours = Object.keys(hourlyData).sort();
+            const avgScores = hours.map(h => {
+                const data = hourlyData[h];
+                return data.scores.reduce((a, b) => a + b, 0) / data.scores.length;
+            });
+            
+            chart.setOption({
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: hours.map(h => h.replace('T', ' ')),
+                    axisLabel: { rotate: 45 }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '平均情感得分',
+                    min: 0,
+                    max: 1
+                },
+                series: [{
+                    name: '情感得分',
+                    type: 'line',
+                    smooth: true,
+                    data: avgScores,
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(102, 126, 234, 0.3)' },
+                            { offset: 1, color: 'rgba(102, 126, 234, 0.1)' }
+                        ])
+                    },
+                    lineStyle: {
+                        color: '#667eea',
+                        width: 3
+                    }
+                }]
+            });
+        }
+        
+        // 帖子情感分类统计
+        function renderPostChart() {
+            const chart = echarts.init(document.getElementById('postChart'));
+            const dist = overallData.posts_by_sentiment;
+            
+            chart.setOption({
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['正面', '负面', '中性']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '帖子数量'
+                },
+                series: [{
+                    name: '帖子数',
+                    type: 'bar',
+                    data: [
+                        dist.positive?.length || 0,
+                        dist.negative?.length || 0,
+                        dist.neutral?.length || 0
+                    ],
+                    itemStyle: {
+                        color: function(params) {
+                            const colors = ['#52c41a', '#ff4d4f', '#faad14'];
+                            return colors[params.dataIndex];
+                        }
+                    },
+                    label: {
+                        show: true,
+                        position: 'top'
+                    }
+                }]
+            });
+        }
+        
+        // 页面加载时初始化
+        init();
+    </script>
+</body>
+</html>
+

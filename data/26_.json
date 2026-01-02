@@ -1,0 +1,18 @@
+{
+  "post": {
+    "title": "",
+    "post_id": "",
+    "author": {
+      "id": "",
+      "name": "",
+      "url": ""
+    },
+    "content": "",
+    "create_time": "",
+    "location": "",
+    "like_count": 0,
+    "comment_count": 0,
+    "url": ""
+  },
+  "comments": []
+}

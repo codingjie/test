@@ -1,0 +1,157 @@
+# 豆瓣帖子爬虫与情感分析系统
+
+一个完整的豆瓣小组帖子爬取、解析和情感分析系统。
+
+## 功能特性
+
+### 1. 数据爬取
+- 爬取豆瓣小组帖子列表
+- 下载帖子详细内容和评论
+- 自动保存为JSON格式
+
+### 2. 数据解析
+- 提取帖子标题、内容、作者信息
+- 提取评论内容、评论者信息、时间等
+- 结构化数据存储
+
+### 3. 情感分析
+- 多维度情感分析
+- 关键词提取
+- 时间维度分析
+- 作者维度分析
+
+### 4. 可视化展示
+- Web界面展示分析结果
+- 多种图表类型（饼图、柱状图、折线图等）
+- 实时数据刷新
+
+## 项目结构
+
+```
+.
+├── crawl/              # 爬虫模块
+│   ├── main.py        # 主爬虫程序
+│   ├── get_list.py    # 获取帖子列表
+│   └── parser.py      # 解析HTML
+├── analyze/            # 情感分析模块
+│   ├── sentiment_analyzer.py  # 情感分析器
+│   ├── api_server.py   # API服务器
+│   └── run_analysis.py # 快速分析脚本
+├── frontend/           # 前端界面
+│   └── index.html     # 可视化页面
+├── data/               # 数据目录
+└── docs/               # 文档目录
+```
+
+## 安装
+
+### 1. 安装Python依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. 下载snownlp模型（首次运行会自动下载）
+
+```python
+from snownlp import SnowNLP
+s = SnowNLP("测试")
+```
+
+## 使用方法
+
+### 1. 爬取数据
+
+```bash
+cd crawl
+python main.py
+```
+
+### 2. 运行情感分析
+
+#### 方式一：命令行分析
+
+```bash
+cd analyze
+python run_analysis.py
+```
+
+#### 方式二：启动Web可视化
+
+```bash
+cd analyze
+python api_server.py
+```
+
+然后在浏览器中访问：http://localhost:5000
+
+### 3. 使用Python API
+
+```python
+from analyze.sentiment_analyzer import SentimentAnalyzer
+import json
+
+# 创建分析器
+analyzer = SentimentAnalyzer()
+
+# 分析单个帖子
+with open('data/16_355670360.json', 'r', encoding='utf-8') as f:
+    post_data = json.load(f)
+result = analyzer.analyze_post(post_data)
+
+# 批量分析
+batch_result = analyzer.analyze_batch("data")
+```
+
+## 分析维度
+
+1. **整体情感分析**
+   - 情感得分（0-1）
+   - 情感分类（正面/负面/中性）
+   - 情感强度
+
+2. **关键词分析**
+   - TF-IDF关键词提取
+   - 关键词权重排序
+
+3. **时间维度**
+   - 情感随时间变化趋势
+   - 评论时间分布
+
+4. **作者维度**
+   - 不同评论者的情感倾向
+   - 评论者活跃度统计
+
+5. **统计维度**
+   - 帖子数量统计
+   - 评论数量统计
+   - 情感分布统计
+
+## API接口
+
+### GET /api/overall
+获取总体统计信息
+
+### GET /api/posts
+获取所有帖子分析结果
+
+### GET /api/keywords
+获取关键词列表
+
+### GET /api/post/<post_id>
+获取单个帖子详细分析
+
+### GET /api/refresh
+刷新分析结果
+
+## 注意事项
+
+1. 请遵守豆瓣的使用条款，不要过度频繁请求
+2. 首次运行snownlp需要下载模型，可能需要一些时间
+3. 分析大量数据时建议使用缓存机制
+4. 情感分析结果仅供参考
+
+## 许可证
+
+MIT License
+
