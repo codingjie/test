@@ -5,4 +5,5 @@ snownlp>=0.12.3
 jieba>=0.42.1
 flask>=2.3.0
 flask-cors>=4.0.0
+flask-compress>=1.14
 tqdm>=4.66.0

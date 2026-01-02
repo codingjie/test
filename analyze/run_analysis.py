@@ -22,10 +22,11 @@ def main():
     analyzer = SentimentAnalyzer()
     
     # 批量分析
-    print("\n开始分析数据...")
-    result = analyzer.analyze_batch("data")
+    print("\n开始分析数据（使用多进程并行处理）...")
+    # CPU密集型任务使用进程池（use_threading=False）
+    result = analyzer.analyze_batch("data", use_threading=False)
     
-    # 保存结果
+    # 保存结果（API服务器会使用这个缓存文件）
     output_file = Path("analyze/analysis_result.json")
     output_file.parent.mkdir(exist_ok=True)
     with open(output_file, 'w', encoding='utf-8') as f:
