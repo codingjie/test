@@ -56,7 +56,7 @@ if __name__ == "__main__":
     output_dir.mkdir(exist_ok=True)
     
     # 获取帖子列表
-    group_id = "724338"
+    group_id = "724338" # 跨年龄段烦恼交流会
     page = 0
     posts = get_post_list(group_id=group_id, page=page)
     
