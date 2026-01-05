@@ -1,0 +1,14 @@
+..\objects\tim.o: ..\SYSTEM\tim\tim.c
+..\objects\tim.o: ..\SYSTEM\tim\tim.h
+..\objects\tim.o: ..\USER\stm32f10x.h
+..\objects\tim.o: ..\CORE\core_cm3.h
+..\objects\tim.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\objects\tim.o: ..\USER\system_stm32f10x.h
+..\objects\tim.o: ..\USER\stm32f10x_conf.h
+..\objects\tim.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\objects\tim.o: ..\USER\stm32f10x.h
+..\objects\tim.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\objects\tim.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\objects\tim.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\objects\tim.o: ..\STM32F10x_FWLib\inc\misc.h
+..\objects\tim.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h

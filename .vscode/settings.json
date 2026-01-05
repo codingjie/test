@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "usart.h": "c",
+        "stm32f10x_gpio.h": "c",
+        "infrared.h": "c",
+        "stm32f10x.h": "c",
+        "delay.h": "c",
+        "ultrasonic.h": "c",
+        "led.h": "c"
+    }
+}
