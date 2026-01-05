@@ -12,3 +12,5 @@
 ..\objects\tim.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 ..\objects\tim.o: ..\STM32F10x_FWLib\inc\misc.h
 ..\objects\tim.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h
+..\objects\tim.o: ..\HARDWARE\TRAFFIC_LIGHT\traffic_light.h
+..\objects\tim.o: ..\HARDWARE\LED\led.h

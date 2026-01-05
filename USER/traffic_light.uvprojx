@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\STM32F10x_FWLib\inc;..\USER;..\HARDWARE\LED;..\SYSTEM\delay;..\HARDWARE\SEG;..\SYSTEM\tim</IncludePath>
+              <IncludePath>..\CORE;..\STM32F10x_FWLib\inc;..\USER;..\HARDWARE\LED;..\SYSTEM\delay;..\HARDWARE\SEG;..\SYSTEM\tim;..\HARDWARE\TRAFFIC_LIGHT</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -413,6 +413,11 @@
               <FileName>segment.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\SEG\segment.c</FilePath>
+            </File>
+            <File>
+              <FileName>traffic_light.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\TRAFFIC_LIGHT\traffic_light.c</FilePath>
             </File>
           </Files>
         </Group>

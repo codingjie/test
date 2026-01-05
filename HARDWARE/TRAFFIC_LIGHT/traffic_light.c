@@ -5,11 +5,6 @@ TrafficLightState current_state = STATE_SN_GREEN_EW_RED;
 volatile uint16_t state_timer = GREEN_TIME;
 volatile uint8_t yellow_blink_flag = 0;
 
-/**
- * @brief  初始化交通灯系统
- * @param  None
- * @retval None
- */
 void TrafficLight_Init(void) {
     current_state = STATE_SN_GREEN_EW_RED;
     state_timer = GREEN_TIME;

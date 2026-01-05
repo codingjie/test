@@ -3,6 +3,7 @@
 #include "tim.h"
 #include "delay.h"
 #include "traffic_light.h"
+#include "segment.h"
 
 void RCC_Configuration(void) {
     RCC_DeInit();
@@ -29,6 +30,8 @@ int main(void) {
     LED_Init();
     TrafficLight_Init(); // 初始化交通灯系统
     TIM2_Int_Init(); // 启动定时器中断
+    Segment_Init();
+    Segment_DisplayAll(3, 7);
 
     while (1) {
         // 主循环中无需操作，所有控制逻辑在定时器中断中完成

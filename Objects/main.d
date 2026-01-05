@@ -14,3 +14,5 @@
 ..\objects\main.o: ..\SYSTEM\tim\tim.h
 ..\objects\main.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h
 ..\objects\main.o: ..\SYSTEM\delay\delay.h
+..\objects\main.o: ..\HARDWARE\TRAFFIC_LIGHT\traffic_light.h
+..\objects\main.o: ..\HARDWARE\SEG\segment.h

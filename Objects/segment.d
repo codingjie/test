@@ -1,1 +1,14 @@
 ..\objects\segment.o: ..\HARDWARE\SEG\segment.c
+..\objects\segment.o: ..\HARDWARE\SEG\segment.h
+..\objects\segment.o: ..\USER\stm32f10x.h
+..\objects\segment.o: ..\CORE\core_cm3.h
+..\objects\segment.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\objects\segment.o: ..\USER\system_stm32f10x.h
+..\objects\segment.o: ..\USER\stm32f10x_conf.h
+..\objects\segment.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\objects\segment.o: ..\USER\stm32f10x.h
+..\objects\segment.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\objects\segment.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\objects\segment.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\objects\segment.o: ..\STM32F10x_FWLib\inc\misc.h
+..\objects\segment.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h

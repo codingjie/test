@@ -1,0 +1,14 @@
+..\objects\traffic_light.o: ..\HARDWARE\TRAFFIC_LIGHT\traffic_light.c
+..\objects\traffic_light.o: ..\HARDWARE\TRAFFIC_LIGHT\traffic_light.h
+..\objects\traffic_light.o: ..\USER\stm32f10x.h
+..\objects\traffic_light.o: ..\CORE\core_cm3.h
+..\objects\traffic_light.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\objects\traffic_light.o: ..\USER\system_stm32f10x.h
+..\objects\traffic_light.o: ..\USER\stm32f10x_conf.h
+..\objects\traffic_light.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\objects\traffic_light.o: ..\USER\stm32f10x.h
+..\objects\traffic_light.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\objects\traffic_light.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\objects\traffic_light.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\objects\traffic_light.o: ..\STM32F10x_FWLib\inc\misc.h
+..\objects\traffic_light.o: ..\HARDWARE\LED\led.h
