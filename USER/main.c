@@ -2,6 +2,7 @@
 #include "stm32f10x.h"
 #include "tim.h"
 #include "delay.h"
+#include "traffic_light.h"
 
 void RCC_Configuration(void) {
     RCC_DeInit();
@@ -26,9 +27,10 @@ int main(void) {
 
     delay_init();
     LED_Init();
-    TIM2_Int_Init(); // 内部已设置 seconds_left = 15
+    TrafficLight_Init(); // 初始化交通灯系统
+    TIM2_Int_Init(); // 启动定时器中断
 
     while (1) {
-    
+        // 主循环中无需操作，所有控制逻辑在定时器中断中完成
     }
 }
