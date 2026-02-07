@@ -11,7 +11,7 @@ public class WebConfig implements WebMvcConfigurer {
     private TokenInterceptor tokenInterceptor;
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        String[] staticPath = {"/static/**"};
+        String[] staticPath = {"/static/**", "/api/temp"};
         registry.addInterceptor(tokenInterceptor).addPathPatterns("/**")
                 .excludePathPatterns(staticPath);
     }
