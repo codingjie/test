@@ -1,0 +1,14 @@
+..\object\key.o: ..\HARDWARE\KEY\key.c
+..\object\key.o: ..\HARDWARE\KEY\key.h
+..\object\key.o: ..\USER\stm32f10x.h
+..\object\key.o: ..\CORE\core_cm3.h
+..\object\key.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\object\key.o: ..\USER\system_stm32f10x.h
+..\object\key.o: ..\USER\stm32f10x_conf.h
+..\object\key.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\object\key.o: ..\USER\stm32f10x.h
+..\object\key.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\object\key.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\key.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\object\key.o: ..\STM32F10x_FWLib\inc\misc.h
+..\object\key.o: ..\STM32F10x_FWLib\inc\stm32f10x_exti.h
