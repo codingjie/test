@@ -50,10 +50,11 @@ void PWM_Capture_Init(void) {
     TIM_ICInitTypeDef     ic;
     NVIC_InitTypeDef      nv;
 
-    /* PA0 浮空输入（由外部信号驱动） */
+    /* PA0 内部下拉输入：悬空时引脚稳定低电平，不产生假边沿；
+     * 接入信号后信号源低阻抗可轻松驱动，不影响测量 */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     gp.GPIO_Pin   = GPIO_Pin_0;
-    gp.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+    gp.GPIO_Mode  = GPIO_Mode_IPD;   /* 内部下拉，防悬空噪声 */
     gp.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &gp);
 

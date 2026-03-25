@@ -158,11 +158,7 @@ int main(void) {
 #define SAVE_INTERVAL   100u
     uint16_t save_cnt     = 0;
 
-    /*
-     * 历史模式超时：HIST_TIMEOUT=200 → ~10s 无操作返回 LIVE
-     */
-#define HIST_TIMEOUT    200u
-    uint16_t hist_timeout = 0;
+    /* 历史模式：仅 KEY2 退出，无自动超时 */
 
     /* ---- 主循环 ---- */
     for (;;) {
@@ -210,7 +206,6 @@ int main(void) {
                 if (cnt > 0) {
                     mode        = 1;
                     view_idx    = cnt - 1;  /* 从最新记录开始 */
-                    hist_timeout = 0;
                     draw_frame();
                     draw_mode_hints(1, view_idx);
                     PwmRecord rec;
@@ -232,19 +227,9 @@ int main(void) {
             }
 
         /* ============================================================
-         *  HIST 模式
+         *  HIST 模式  (只有 KEY2 可退出)
          * ============================================================ */
         } else {
-            /* 超时自动返回 LIVE */
-            if (++hist_timeout >= HIST_TIMEOUT) {
-                mode = 0;
-                disp_freq = 0xFFFFFFFFu;    /* 强制刷新 LIVE 显示 */
-                disp_sig  = 0xFF;
-                draw_frame();
-                draw_mode_hints(0, 0);
-                continue;
-            }
-
             /* KEY1：查看上一条（更旧）记录 */
             if (key == 1) {
                 hist_timeout = 0;

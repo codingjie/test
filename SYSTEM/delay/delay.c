@@ -37,17 +37,12 @@ void delay_us(uint32_t nus)
 //nms<=0xffffff*8*1000/SYSCLK
 //SYSCLK��λΪHz,nms��λΪms
 //��72M������,nms<=1864 
+/* delay_ms: 用循环调用 delay_us 实现，避免 fac_ms u16 溢出
+ * 及 SysTick 24 位 LOAD 寄存器超限问题 (72MHz 下单次最大 ~233ms)
+ */
 void delay_ms(uint16_t nms)
-{	 		  	  
-	u32 temp;		   
-	SysTick->LOAD=(u32)nms*fac_ms;				//ʱ�����(SysTick->LOADΪ24bit)
-	SysTick->VAL =0x00;							//��ռ�����
-	SysTick->CTRL|=SysTick_CTRL_ENABLE_Msk ;	//��ʼ����  
-	do
-	{
-		temp=SysTick->CTRL;
-	}while((temp&0x01)&&!(temp&(1<<16)));		//�ȴ�ʱ�䵽��   
-	SysTick->CTRL&=~SysTick_CTRL_ENABLE_Msk;	//�رռ�����
-	SysTick->VAL =0X00;       					//��ռ�����	  	    
-} 
+{
+    while (nms--)
+        delay_us(1000);
+}
 
