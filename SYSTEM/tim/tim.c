@@ -2,93 +2,107 @@
 #include "stm32f10x_gpio.h"
 #include "stm32f10x_rcc.h"
 
-/*
- * ============================================================
- *  算法说明
+/* ================================================================
+ *  测量方法：TIM2 双通道输入捕获 + 多周期累积平均
  *
- *  使用 TIM2 CH1(上升沿) + CH2(下降沿) 同时捕获 PA0 信号。
- *  不使用从模式复位，而是记录两次上升沿时间戳差值作为周期，
- *  下降沿时间戳与前一上升沿之差作为高电平时间。
+ *  计数器频率：72MHz / (PSC+1) = 72MHz / 8 = 9MHz
+ *              → 1 count ≈ 111ns，比原 1MHz 精度提高 9 倍
  *
- *  为支持低至 1Hz（周期 1s = 1,000,000 µs），16位计数器
- *  (ARR=0xFFFF, 溢出周期 65.536ms) 会产生约 15 次溢出。
- *  通过软件溢出计数器将时间戳扩展为 32 位：
+ *  精度（9MHz + 8周期平均，等效计数值）：
+ *    10kHz → 单周期 900cnt → 8周期平均 7200cnt → ±0.014%
+ *     1kHz → 单周期 9000cnt                      → ±0.011%
+ *     1Hz  → 单周期 9,000,000cnt → N=1 立即更新  → ±0.000011%
  *
- *    timestamp_32 = ovf_cnt × 65536 + CCR 值
+ *  自适应更新策略（避免低频等待过久）：
+ *    累积 ≥ ACCUM_MAX_N 个周期，或累积时间 ≥ 500ms，取先到者更新显示
+ *    → 1Hz 每秒更新一次（N=1）；10kHz 每 0.9ms 更新一次（N=8）
  *
- *  处理溢出与捕获同时发生的竞态：
- *    - Update 中断先于 CC 中断处理
- *    - 若本次 IRQ 已处理过溢出(update_now=1)，
- *      且 CCR < 0x8000，说明溢出发生在捕获之前 → 当前 ovf 正确
- *      且 CCR >= 0x8000，说明溢出发生在捕获之后 → ovf 需 -1 修正
+ *  无信号检测：
+ *    连续 200 次溢出（≈1.46s）无有效捕获 → 判定无信号
+ *    溢出周期 = 65536 / 9MHz ≈ 7.28ms
  *
- *  无信号检测：每次有效上升沿捕获时清零 g_nosig_ovf；
- *  否则每次溢出 +1；超过阈值(≈2s)则判定无信号。
- * ============================================================
- */
+ *  32位时间戳扩展：
+ *    timestamp = (overflow_count << 16) | CCR
+ *    支持最长 9,900,000 counts（≈1.1s = 0.91Hz）的周期无回绕溢出
+ * ================================================================ */
+
+#define TIMER_FREQ_HZ    9000000UL   /* 72MHz / 8 = 9MHz */
+#define PSC_VALUE        7           /* TIM_Prescaler 寄存器值 */
+
+#define ACCUM_MAX_N      8           /* 最多累积周期数 */
+#define ACCUM_MAX_CNT    4500000UL   /* 累积时间上限：500ms × 9MHz */
+
+/* 无信号阈值：200 × 7.28ms ≈ 1.46s */
+#define NOSIG_THRESHOLD  200u
+
+/* 有效周期区间（timer counts）：
+ *   下限 720 ≈ 12.5kHz，为 10kHz 边界预留 ±1 计数抖动裕量
+ *   上限 9,900,000 ≈ 0.91Hz，略低于 1Hz 以拒绝过长无效捕获 */
+#define PERIOD_MIN_CNT   720u
+#define PERIOD_MAX_CNT   9900000UL
 
 /* ---- 中断与主程序共享变量 ---- */
-static volatile uint32_t s_ovf_cnt       = 0;   /* 溢出计数（连续累加） */
-static volatile uint32_t s_prev_rising   = 0;   /* 前一上升沿 32位时间戳 */
-static volatile uint32_t s_falling_ext   = 0;   /* 最近下降沿 32位时间戳 */
-static volatile uint8_t  s_first_cap     = 1;   /* 首次捕获标志（跳过第一周期） */
+static volatile uint32_t s_ovf_cnt       = 0;
+static volatile uint32_t s_prev_rising   = 0;
+static volatile uint32_t s_falling_ext   = 0;
+static volatile uint8_t  s_first_cap     = 1;
 
-volatile uint32_t g_period_us  = 0;
-volatile uint32_t g_high_us    = 0;
-volatile uint8_t  g_cap_done   = 0;
-volatile uint32_t g_nosig_ovf  = 0;    /* 自上次有效捕获后的溢出次数 */
+/* 多周期累积缓冲 */
+static volatile uint32_t s_accum_period  = 0;
+static volatile uint32_t s_accum_high    = 0;
+static volatile uint8_t  s_accum_n       = 0;
 
-/* 无信号判定阈值：31 次溢出 × 65.536ms ≈ 2.03s */
-#define NOSIG_THRESHOLD  31u
+/* 对外输出（单位：timer counts） */
+static volatile uint32_t g_period_cnt    = 0;
+static volatile uint32_t g_high_cnt      = 0;
+volatile uint8_t         g_cap_done      = 0;
+volatile uint32_t        g_nosig_ovf     = 0;
 
 /* ================================================================
  *  初始化
  * ================================================================ */
 void PWM_Capture_Init(void) {
-    GPIO_InitTypeDef      gp;
+    GPIO_InitTypeDef        gp;
     TIM_TimeBaseInitTypeDef tb;
-    TIM_ICInitTypeDef     ic;
-    NVIC_InitTypeDef      nv;
+    TIM_ICInitTypeDef       ic;
+    NVIC_InitTypeDef        nv;
 
-    /* PA0 内部下拉输入：悬空时引脚稳定低电平，不产生假边沿；
-     * 接入信号后信号源低阻抗可轻松驱动，不影响测量 */
+    /* PA0 内部下拉：悬空时稳定低电平，不产生假边沿 */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     gp.GPIO_Pin   = GPIO_Pin_0;
-    gp.GPIO_Mode  = GPIO_Mode_IPD;   /* 内部下拉，防悬空噪声 */
+    gp.GPIO_Mode  = GPIO_Mode_IPD;
     gp.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &gp);
 
-    /* TIM2 时钟（APB1 × 2 = 72MHz） */
+    /* TIM2 时钟（APB1×2 = 72MHz） */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
-    /* 时基：PSC=71 → 1MHz 计数；ARR=0xFFFF 最大 16 位 */
+    /* 时基：PSC=7 → 9MHz；ARR=0xFFFF（16位最大） */
     tb.TIM_Period        = 0xFFFF;
-    tb.TIM_Prescaler     = 71;
+    tb.TIM_Prescaler     = PSC_VALUE;
     tb.TIM_ClockDivision = TIM_CKD_DIV1;
     tb.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM2, &tb);
 
-    /* CH1：上升沿捕获 TI1 (PA0) */
+    /* CH1：上升沿捕获 TI1 (PA0) — 周期测量 */
     ic.TIM_Channel     = TIM_Channel_1;
     ic.TIM_ICPolarity  = TIM_ICPolarity_Rising;
-    ic.TIM_ICSelection = TIM_ICSelection_DirectTI;   /* IC1 ← TI1 */
+    ic.TIM_ICSelection = TIM_ICSelection_DirectTI;
     ic.TIM_ICPrescaler = TIM_ICPSC_DIV1;
-    ic.TIM_ICFilter    = 0x04;    /* 4 采样滤波，抑制毛刺 */
+    ic.TIM_ICFilter    = 0x04;   /* 4采样滤波，抑制毛刺 */
     TIM_ICInit(TIM2, &ic);
 
-    /* CH2：下降沿捕获 TI1 (PA0) — 通过 IndirectTI 复用同一引脚 */
+    /* CH2：下降沿捕获 TI1 (PA0) — 占空比测量 */
     ic.TIM_Channel     = TIM_Channel_2;
     ic.TIM_ICPolarity  = TIM_ICPolarity_Falling;
-    ic.TIM_ICSelection = TIM_ICSelection_IndirectTI; /* IC2 ← TI1 */
+    ic.TIM_ICSelection = TIM_ICSelection_IndirectTI; /* 复用同一引脚 */
     ic.TIM_ICPrescaler = TIM_ICPSC_DIV1;
     ic.TIM_ICFilter    = 0x04;
     TIM_ICInit(TIM2, &ic);
 
-    /* 使能中断：CC1(上升) + CC2(下降) + Update(溢出) */
     TIM_ClearFlag(TIM2, TIM_FLAG_CC1 | TIM_FLAG_CC2 | TIM_FLAG_Update);
     TIM_ITConfig(TIM2, TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_Update, ENABLE);
 
-    /* NVIC —— 抢占优先级 1，低于 SysTick(0) */
     nv.NVIC_IRQChannel                   = TIM2_IRQn;
     nv.NVIC_IRQChannelPreemptionPriority = 1;
     nv.NVIC_IRQChannelSubPriority        = 0;
@@ -99,12 +113,12 @@ void PWM_Capture_Init(void) {
 }
 
 /* ================================================================
- *  中断服务核心（由 stm32f10x_it.c 中 TIM2_IRQHandler 调用）
+ *  中断服务核心（由 stm32f10x_it.c 的 TIM2_IRQHandler 调用）
  * ================================================================ */
 void PWM_TIM2_IRQHandler(void) {
     uint8_t update_now = 0;
 
-    /* ① 先处理溢出，确保 s_ovf_cnt 已更新 */
+    /* ① 溢出（Update）：先处理，保证 s_ovf_cnt 在后续读取时已更新 */
     if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         s_ovf_cnt++;
@@ -112,20 +126,17 @@ void PWM_TIM2_IRQHandler(void) {
         update_now = 1;
     }
 
-    /* ② 下降沿捕获 → 记录高电平结束时间戳 */
+    /* ② 下降沿：记录高电平结束时间戳 */
     if (TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET) {
         TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
         uint32_t ccr2 = (uint16_t)TIM_GetCapture2(TIM2);
         uint32_t ovf  = s_ovf_cnt;
-        /*
-         * 竞态修正：若本次 ISR 已处理溢出，且 ccr2 较大，
-         * 说明溢出实际发生在捕获之后，ovf 被多算了一次
-         */
+        /* 竞态修正：本次 ISR 已计溢出，但捕获发生在溢出之前 */
         if (update_now && (ccr2 >= 0x8000u)) ovf--;
         s_falling_ext = (ovf << 16) | ccr2;
     }
 
-    /* ③ 上升沿捕获 → 计算周期与占空比 */
+    /* ③ 上升沿：计算周期与高电平时间，累积平均后更新结果 */
     if (TIM_GetITStatus(TIM2, TIM_IT_CC1) != RESET) {
         TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
         uint32_t ccr1 = (uint16_t)TIM_GetCapture1(TIM2);
@@ -133,23 +144,45 @@ void PWM_TIM2_IRQHandler(void) {
         if (update_now && (ccr1 >= 0x8000u)) ovf--;
         uint32_t rising = (ovf << 16) | ccr1;
 
+        /* 若无信号超时已触发，清除历史状态重新同步 */
+        if (g_nosig_ovf >= NOSIG_THRESHOLD) {
+            g_nosig_ovf    = 0;
+            s_first_cap    = 1;
+            s_accum_n      = 0;
+            s_accum_period = 0;
+            s_accum_high   = 0;
+        }
+
         if (!s_first_cap) {
-            uint32_t period    = rising - s_prev_rising;   /* unsigned 自动处理回绕 */
+            uint32_t period    = rising - s_prev_rising;   /* 无符号自动处理回绕 */
             uint32_t high_time = s_falling_ext - s_prev_rising;
 
-            /*
-             * 有效性校验：
-             *   1Hz ≤ f ≤ 10kHz  →  period ≤ 1,100,000µs
-             *   下限取 80µs(≈12.5kHz)，为 10kHz 边界预留 ±1 计数抖动裕量
-             *   high_time 必须 ≤ period (duty ≤ 100%)
-             */
-            if (period >= 80u && period <= 1100000u && high_time <= period) {
-                g_period_us = period;
-                g_high_us   = high_time;
-                g_cap_done  = 1;
-                g_nosig_ovf = 0;   /* 有信号，复位无信号计数器 */
+            if (period >= PERIOD_MIN_CNT && period <= PERIOD_MAX_CNT &&
+                high_time <= period) {
+
+                /* 有效捕获 → 复位无信号计数器 */
+                g_nosig_ovf = 0;
+
+                /* 累积 */
+                s_accum_period += period;
+                s_accum_high   += high_time;
+                s_accum_n++;
+
+                /* 满足更新条件：
+                 *   a) 累积了足够多的周期（高频时提高精度）
+                 *   b) 累积时间超过 500ms（低频时避免等待太久）*/
+                if (s_accum_n >= ACCUM_MAX_N ||
+                    s_accum_period >= ACCUM_MAX_CNT) {
+                    g_period_cnt   = s_accum_period / s_accum_n;
+                    g_high_cnt     = s_accum_high   / s_accum_n;
+                    g_cap_done     = 1;
+                    s_accum_period = 0;
+                    s_accum_high   = 0;
+                    s_accum_n      = 0;
+                }
             }
         }
+
         s_prev_rising = rising;
         s_first_cap   = 0;
     }
@@ -167,17 +200,19 @@ uint8_t PWM_Signal_Present(void) {
     return (g_nosig_ovf < NOSIG_THRESHOLD);
 }
 
+/* 频率（Hz）：四舍五入整除 */
 uint32_t PWM_Get_Freq(void) {
-    uint32_t p = g_period_us;
+    uint32_t p = g_period_cnt;
     if (p == 0) return 0;
-    return 1000000UL / p;
+    return (TIMER_FREQ_HZ + p / 2) / p;
 }
 
+/* 占空比（0-100%）：四舍五入 */
 uint8_t PWM_Get_Duty(void) {
-    uint32_t p = g_period_us;
-    uint32_t h = g_high_us;
+    uint32_t p = g_period_cnt;
+    uint32_t h = g_high_cnt;
     uint32_t d;
     if (p == 0) return 0;
-    d = (h * 100UL + p / 2) / p;   /* 四舍五入 */
+    d = (h * 100UL + p / 2) / p;
     return (d > 100u) ? 100u : (uint8_t)d;
 }
