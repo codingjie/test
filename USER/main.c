@@ -124,6 +124,19 @@ static uint8_t key_scan(void) {
  *  主程序
  * ================================================================ */
 int main(void) {
+    /* C90: 所有变量声明必须在块开头，在任何语句之前 */
+    uint8_t  mode      = 0;        /* 0=LIVE  1=HIST */
+    uint8_t  view_idx  = 0;        /* 历史查看索引 */
+    uint32_t cur_freq  = 0;
+    uint8_t  cur_duty  = 0;
+    uint8_t  sig_ok    = 0;
+    uint32_t disp_freq = 0xFFFFFFFFu;  /* 防闪烁：仅值变化时刷新 */
+    uint8_t  disp_duty = 0xFF;
+    uint8_t  disp_sig  = 0xFF;
+    uint8_t  key;
+    uint8_t  cnt;
+    PwmRecord rec;
+
     /* ---- 初始化 ---- */
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     delay_init();
@@ -132,30 +145,15 @@ int main(void) {
     EEPROM_Init();
     PWM_Capture_Init();
 
-    /* ---- 初始界面 ---- */
+    /* ---- 初始界面（LIVE 模式）---- */
     draw_frame();
     draw_mode_hints(0, 0);
     lcd_putline(32, WHITE, BLACK, "  Waiting...    ");
     lcd_putline(48, WHITE, BLACK, "                ");
 
-    /* ---- 应用状态 ---- */
-    uint8_t  mode         = 0;        /* 0=LIVE  1=HIST */
-    uint8_t  view_idx     = 0;        /* 历史查看索引(0=最旧) */
-
-    uint32_t cur_freq     = 0;
-    uint8_t  cur_duty     = 0;
-    uint8_t  sig_ok       = 0;
-
-    /* 防抖：仅当值发生变化时刷新 FREQ/DUTY 行，避免屏幕闪烁 */
-    uint32_t disp_freq    = 0xFFFFFFFFu;
-    uint8_t  disp_duty    = 0xFF;
-    uint8_t  disp_sig     = 0xFF;
-
-    /* 历史模式：仅 KEY2 退出，无自动超时 */
-
     /* ---- 主循环 ---- */
     for (;;) {
-        uint8_t key = key_scan();
+        key = key_scan();
 
         /* 更新测量数据 */
         if (PWM_Capture_Ready()) {
@@ -185,13 +183,12 @@ int main(void) {
 
             /* KEY1：进入历史查询 */
             if (key == 1) {
-                uint8_t cnt = EEPROM_GetCount();
+                cnt = EEPROM_GetCount();
                 if (cnt > 0) {
                     mode        = 1;
                     view_idx    = cnt - 1;  /* 从最新记录开始 */
                     draw_frame();
                     draw_mode_hints(1, view_idx);
-                    PwmRecord rec;
                     EEPROM_ReadRecord(view_idx, &rec);
                     draw_data(rec.freq, rec.duty, 1);
                 } else {
@@ -214,10 +211,9 @@ int main(void) {
         } else {
             /* KEY1：查看上一条（更旧）记录 */
             if (key == 1) {
-                uint8_t cnt = EEPROM_GetCount();
+                cnt = EEPROM_GetCount();
                 view_idx = (view_idx == 0) ? cnt - 1 : view_idx - 1;
                 draw_mode_hints(1, view_idx);
-                PwmRecord rec;
                 EEPROM_ReadRecord(view_idx, &rec);
                 draw_data(rec.freq, rec.duty, 1);
             }

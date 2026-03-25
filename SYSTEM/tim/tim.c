@@ -5,41 +5,41 @@
 /* ================================================================
  *  测量方法：TIM2 双通道输入捕获 + 多周期累积平均
  *
- *  计数器频率：72MHz / (PSC+1) = 72MHz / 8 = 9MHz
- *              → 1 count ≈ 111ns，比原 1MHz 精度提高 9 倍
+ *  计数器频率：72MHz / (PSC+1) = 72MHz / 1 = 72MHz
+ *              → 1 count ≈ 13.9ns，比原 1MHz 精度提高 72 倍
  *
- *  精度（9MHz + 8周期平均，等效计数值）：
- *    10kHz → 单周期 900cnt → 8周期平均 7200cnt → ±0.014%
- *     1kHz → 单周期 9000cnt                      → ±0.011%
- *     1Hz  → 单周期 9,000,000cnt → N=1 立即更新  → ±0.000011%
+ *  精度（72MHz + 8周期平均，等效计数值）：
+ *    10kHz → 单周期 7200cnt → 8周期平均 57600cnt → ±0.0017%
+ *     1kHz → 单周期 72000cnt                       → ±0.0014%
+ *     1Hz  → 单周期 72,000,000cnt → N=1 立即更新   → ±0.0000014%
  *
  *  自适应更新策略（避免低频等待过久）：
  *    累积 ≥ ACCUM_MAX_N 个周期，或累积时间 ≥ 500ms，取先到者更新显示
- *    → 1Hz 每秒更新一次（N=1）；10kHz 每 0.9ms 更新一次（N=8）
+ *    → 1Hz 每秒更新一次（N=1）；10kHz 每 0.8ms 更新一次（N=8）
  *
  *  无信号检测：
- *    连续 200 次溢出（≈1.46s）无有效捕获 → 判定无信号
- *    溢出周期 = 65536 / 9MHz ≈ 7.28ms
+ *    连续 1600 次溢出（≈1.46s）无有效捕获 → 判定无信号
+ *    溢出周期 = 65536 / 72MHz ≈ 0.91ms
  *
  *  32位时间戳扩展：
  *    timestamp = (overflow_count << 16) | CCR
- *    支持最长 9,900,000 counts（≈1.1s = 0.91Hz）的周期无回绕溢出
+ *    支持最长 79,200,000 counts（≈1.1s = 0.91Hz）的周期无回绕溢出
  * ================================================================ */
 
-#define TIMER_FREQ_HZ    9000000UL   /* 72MHz / 8 = 9MHz */
-#define PSC_VALUE        7           /* TIM_Prescaler 寄存器值 */
+#define TIMER_FREQ_HZ    72000000UL  /* 72MHz / 1 = 72MHz */
+#define PSC_VALUE        0           /* TIM_Prescaler=0 → 计数器=HCLK=72MHz */
 
 #define ACCUM_MAX_N      8           /* 最多累积周期数 */
-#define ACCUM_MAX_CNT    4500000UL   /* 累积时间上限：500ms × 9MHz */
+#define ACCUM_MAX_CNT    36000000UL  /* 累积时间上限：500ms × 72MHz */
 
-/* 无信号阈值：200 × 7.28ms ≈ 1.46s */
-#define NOSIG_THRESHOLD  200u
+/* 无信号阈值：溢出周期 = 65536/72MHz ≈ 0.91ms；1600 × 0.91ms ≈ 1.46s */
+#define NOSIG_THRESHOLD  1600u
 
 /* 有效周期区间（timer counts）：
- *   下限 720 ≈ 12.5kHz，为 10kHz 边界预留 ±1 计数抖动裕量
- *   上限 9,900,000 ≈ 0.91Hz，略低于 1Hz 以拒绝过长无效捕获 */
-#define PERIOD_MIN_CNT   720u
-#define PERIOD_MAX_CNT   9900000UL
+ *   下限 5760 ≈ 12.5kHz，为 10kHz 边界预留 ±1 计数抖动裕量
+ *   上限 79,200,000 ≈ 0.91Hz，略低于 1Hz 以拒绝过长无效捕获 */
+#define PERIOD_MIN_CNT   5760u
+#define PERIOD_MAX_CNT   79200000UL
 
 /* ---- 中断与主程序共享变量 ---- */
 static volatile uint32_t s_ovf_cnt       = 0;
@@ -77,7 +77,7 @@ void PWM_Capture_Init(void) {
     /* TIM2 时钟（APB1×2 = 72MHz） */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
-    /* 时基：PSC=7 → 9MHz；ARR=0xFFFF（16位最大） */
+    /* 时基：PSC=0 → 72MHz；ARR=0xFFFF（16位最大） */
     tb.TIM_Period        = 0xFFFF;
     tb.TIM_Prescaler     = PSC_VALUE;
     tb.TIM_ClockDivision = TIM_CKD_DIV1;
