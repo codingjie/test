@@ -139,10 +139,11 @@ void PWM_TIM2_IRQHandler(void) {
 
             /*
              * 有效性校验：
-             *   1Hz ≤ f ≤ 10kHz  →  100µs ≤ period ≤ 1,000,000µs
+             *   1Hz ≤ f ≤ 10kHz  →  period ≤ 1,100,000µs
+             *   下限取 80µs(≈12.5kHz)，为 10kHz 边界预留 ±1 计数抖动裕量
              *   high_time 必须 ≤ period (duty ≤ 100%)
              */
-            if (period >= 100u && period <= 1100000u && high_time <= period) {
+            if (period >= 80u && period <= 1100000u && high_time <= period) {
                 g_period_us = period;
                 g_high_us   = high_time;
                 g_cap_done  = 1;

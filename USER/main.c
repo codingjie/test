@@ -151,13 +151,6 @@ int main(void) {
     uint8_t  disp_duty    = 0xFF;
     uint8_t  disp_sig     = 0xFF;
 
-    /*
-     * 自动保存节流：主循环约 50ms/次，
-     * SAVE_INTERVAL=100 → 每 ~5s 自动保存一次
-     */
-#define SAVE_INTERVAL   100u
-    uint16_t save_cnt     = 0;
-
     /* 历史模式：仅 KEY2 退出，无自动超时 */
 
     /* ---- 主循环 ---- */
@@ -190,16 +183,6 @@ int main(void) {
                 disp_sig  = sig_ok;
             }
 
-            /* 自动保存（有信号时） */
-            if (sig_ok) {
-                if (++save_cnt >= SAVE_INTERVAL) {
-                    save_cnt = 0;
-                    EEPROM_SaveRecord(cur_freq, cur_duty);
-                }
-            } else {
-                save_cnt = 0;
-            }
-
             /* KEY1：进入历史查询 */
             if (key == 1) {
                 uint8_t cnt = EEPROM_GetCount();
@@ -219,7 +202,6 @@ int main(void) {
             else if (key == 2) {
                 if (sig_ok) {
                     EEPROM_SaveRecord(cur_freq, cur_duty);
-                    save_cnt = 0;
                     flash_msg("   Saved!       ", GREEN);
                 } else {
                     flash_msg("No signal!      ", RED);
@@ -232,7 +214,6 @@ int main(void) {
         } else {
             /* KEY1：查看上一条（更旧）记录 */
             if (key == 1) {
-                hist_timeout = 0;
                 uint8_t cnt = EEPROM_GetCount();
                 view_idx = (view_idx == 0) ? cnt - 1 : view_idx - 1;
                 draw_mode_hints(1, view_idx);
