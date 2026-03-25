@@ -302,8 +302,6 @@ void LCD_Fill(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
         LCD_SPI_SendByte(color & 0xFF);
     }
     LCD_CS_H;
-
-    LCD_SetRegion(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
 }
 
 /* ================================================================
@@ -340,18 +338,21 @@ void LCD_ShowImage(uint16_t x, uint16_t y, uint16_t length, uint16_t width,
 }
 
 void LCD_ShowChar(uint8_t x, uint8_t y, uint16_t fc, uint16_t bc, char c) {
-    int k = (c - 32) * 16;
-    for (int i = 0; i < 16; i++) {
-        for (int j = 0; j < 8; j++) {
-            if (asc2_1608[k + i] & (0x80 >> j))
-                LCD_DrawPoint(x + j, y + i, fc);
-            else
-                LCD_DrawPoint(x + j, y + i, bc);
+    int k = (c - 32) * CHAR_HEIGHT;
+    LCD_SetRegion(x, y, x + CHAR_WIDTH - 1, y + CHAR_HEIGHT - 1);
+    LCD_CS_L;
+    LCD_DC_H;
+    for (int i = 0; i < CHAR_HEIGHT; i++) {
+        for (int j = 0; j < CHAR_WIDTH; j++) {
+            uint16_t color = (asc2_1608[k + i] & (0x80 >> j)) ? fc : bc;
+            LCD_SPI_SendByte(color >> 8);
+            LCD_SPI_SendByte(color & 0xFF);
         }
     }
+    LCD_CS_H;
 }
 
-void LCD_ShowString(uint8_t x, uint8_t y, uint16_t fc, uint16_t bc, char *c) {
+void LCD_ShowString(uint8_t x, uint8_t y, uint16_t fc, uint16_t bc, const char *c) {
     int t = strlen(c);
     for (int i = 0; i < t; i++) {
         if (x >= LCD_WIDTH) {

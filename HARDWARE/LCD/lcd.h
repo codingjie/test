@@ -81,7 +81,7 @@ void LCD_Fill(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color
 void LCD_DrawPoint(uint16_t x, uint16_t y, uint16_t color);
 void LCD_ShowImage(uint16_t x, uint16_t y, uint16_t length, uint16_t width, const unsigned char *p);
 void LCD_ShowChar(uint8_t x, uint8_t y, uint16_t fc, uint16_t bc, char c);
-void LCD_ShowString(uint8_t x, uint8_t y, uint16_t fc, uint16_t bc, char *c);
+void LCD_ShowString(uint8_t x, uint8_t y, uint16_t fc, uint16_t bc, const char *c);
 void LCD_ShowNumber(uint8_t x, uint8_t y, uint16_t fc, uint16_t bc, long long num);
 // void LCD_ShowChinese(uint8_t x, uint8_t y, uint16_t fc, uint16_t bc, char *c);
 
