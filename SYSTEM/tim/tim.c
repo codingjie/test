@@ -116,7 +116,9 @@ void PWM_Capture_Init(void) {
  *  中断服务核心（由 stm32f10x_it.c 的 TIM2_IRQHandler 调用）
  * ================================================================ */
 void PWM_TIM2_IRQHandler(void) {
-    uint8_t update_now = 0;
+    /* C90: 所有变量声明必须在函数/块开头 */
+    uint8_t  update_now = 0;
+    uint32_t ccr2, ccr1, ovf, rising, period, high_time;
 
     /* ① 溢出（Update）：先处理，保证 s_ovf_cnt 在后续读取时已更新 */
     if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
@@ -129,8 +131,8 @@ void PWM_TIM2_IRQHandler(void) {
     /* ② 下降沿：记录高电平结束时间戳 */
     if (TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET) {
         TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
-        uint32_t ccr2 = (uint16_t)TIM_GetCapture2(TIM2);
-        uint32_t ovf  = s_ovf_cnt;
+        ccr2 = (uint16_t)TIM_GetCapture2(TIM2);
+        ovf  = s_ovf_cnt;
         /* 竞态修正：本次 ISR 已计溢出，但捕获发生在溢出之前 */
         if (update_now && (ccr2 >= 0x8000u)) ovf--;
         s_falling_ext = (ovf << 16) | ccr2;
@@ -139,10 +141,10 @@ void PWM_TIM2_IRQHandler(void) {
     /* ③ 上升沿：计算周期与高电平时间，累积平均后更新结果 */
     if (TIM_GetITStatus(TIM2, TIM_IT_CC1) != RESET) {
         TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
-        uint32_t ccr1 = (uint16_t)TIM_GetCapture1(TIM2);
-        uint32_t ovf  = s_ovf_cnt;
+        ccr1 = (uint16_t)TIM_GetCapture1(TIM2);
+        ovf  = s_ovf_cnt;
         if (update_now && (ccr1 >= 0x8000u)) ovf--;
-        uint32_t rising = (ovf << 16) | ccr1;
+        rising = (ovf << 16) | ccr1;
 
         /* 若无信号超时已触发，清除历史状态重新同步 */
         if (g_nosig_ovf >= NOSIG_THRESHOLD) {
@@ -154,8 +156,8 @@ void PWM_TIM2_IRQHandler(void) {
         }
 
         if (!s_first_cap) {
-            uint32_t period    = rising - s_prev_rising;   /* 无符号自动处理回绕 */
-            uint32_t high_time = s_falling_ext - s_prev_rising;
+            period    = rising - s_prev_rising;   /* 无符号自动处理回绕 */
+            high_time = s_falling_ext - s_prev_rising;
 
             if (period >= PERIOD_MIN_CNT && period <= PERIOD_MAX_CNT &&
                 high_time <= period) {
