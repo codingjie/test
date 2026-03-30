@@ -17,8 +17,8 @@
 #define SG90_TIM_PRESCALER  71
 #define SG90_TIM_PERIOD     19999
 
-#define SERVO_OPEN_ANGLE    90   // 开盖角度（度）
-#define SERVO_CLOSE_ANGLE    0   // 关盖角度（度）
+#define SERVO_OPEN_ANGLE     0   // 开盖角度（度）
+#define SERVO_CLOSE_ANGLE   90   // 关盖角度（度）
 
 void SG90_Init(void);
 void SG90_SetAngle(uint8_t servo, uint8_t angle);  // servo: 1~4, angle: 0~180
