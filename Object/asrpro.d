@@ -1,0 +1,13 @@
+..\object\asrpro.o: ..\HARDWARE\ASRPRO\asrpro.c
+..\object\asrpro.o: ..\HARDWARE\ASRPRO\asrpro.h
+..\object\asrpro.o: ..\USER\stm32f10x.h
+..\object\asrpro.o: ..\CORE\core_cm3.h
+..\object\asrpro.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\object\asrpro.o: ..\USER\system_stm32f10x.h
+..\object\asrpro.o: ..\USER\stm32f10x_conf.h
+..\object\asrpro.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\object\asrpro.o: ..\USER\stm32f10x.h
+..\object\asrpro.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\object\asrpro.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\asrpro.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\object\asrpro.o: ..\STM32F10x_FWLib\inc\misc.h

@@ -1,0 +1,16 @@
+..\object\ultra.o: ..\HARDWARE\ULTRA\ultra.c
+..\object\ultra.o: ..\HARDWARE\ULTRA\ultra.h
+..\object\ultra.o: ..\USER\stm32f10x.h
+..\object\ultra.o: ..\CORE\core_cm3.h
+..\object\ultra.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\object\ultra.o: ..\USER\system_stm32f10x.h
+..\object\ultra.o: ..\USER\stm32f10x_conf.h
+..\object\ultra.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\object\ultra.o: ..\USER\stm32f10x.h
+..\object\ultra.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\object\ultra.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\ultra.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\object\ultra.o: ..\STM32F10x_FWLib\inc\misc.h
+..\object\ultra.o: ..\SYSTEM\delay\delay.h
+..\object\ultra.o: ..\SYSTEM\sys\sys.h
+..\object\ultra.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h

@@ -8,8 +8,8 @@
 #define BEEP_GPIO_CLK   RCC_APB2Periph_GPIOB
 #define BEEP_PIN        GPIO_Pin_12
 
-#define BEEP_ON()   GPIO_ResetBits(BEEP_GPIO_PORT, BEEP_PIN)
-#define BEEP_OFF()  GPIO_SetBits(BEEP_GPIO_PORT, BEEP_PIN)
+#define BEEP_ON()   GPIO_SetBits(BEEP_GPIO_PORT, BEEP_PIN)
+#define BEEP_OFF()  GPIO_ResetBits(BEEP_GPIO_PORT, BEEP_PIN)
 
 void BEEP_GPIO_Config(void);
 

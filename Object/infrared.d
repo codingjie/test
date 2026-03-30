@@ -1,0 +1,13 @@
+..\object\infrared.o: ..\HARDWARE\INFRARED\infrared.c
+..\object\infrared.o: ..\HARDWARE\INFRARED\infrared.h
+..\object\infrared.o: ..\USER\stm32f10x.h
+..\object\infrared.o: ..\CORE\core_cm3.h
+..\object\infrared.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\object\infrared.o: ..\USER\system_stm32f10x.h
+..\object\infrared.o: ..\USER\stm32f10x_conf.h
+..\object\infrared.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\object\infrared.o: ..\USER\stm32f10x.h
+..\object\infrared.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\object\infrared.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\infrared.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\object\infrared.o: ..\STM32F10x_FWLib\inc\misc.h

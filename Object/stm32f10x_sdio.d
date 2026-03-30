@@ -1,0 +1,13 @@
+..\object\stm32f10x_sdio.o: ..\STM32F10x_FWLib\src\stm32f10x_sdio.c
+..\object\stm32f10x_sdio.o: ..\STM32F10x_FWLib\inc\stm32f10x_sdio.h
+..\object\stm32f10x_sdio.o: ..\USER\stm32f10x.h
+..\object\stm32f10x_sdio.o: ..\CORE\core_cm3.h
+..\object\stm32f10x_sdio.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\object\stm32f10x_sdio.o: ..\USER\system_stm32f10x.h
+..\object\stm32f10x_sdio.o: ..\USER\stm32f10x_conf.h
+..\object\stm32f10x_sdio.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\object\stm32f10x_sdio.o: ..\USER\stm32f10x.h
+..\object\stm32f10x_sdio.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\object\stm32f10x_sdio.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\stm32f10x_sdio.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\object\stm32f10x_sdio.o: ..\STM32F10x_FWLib\inc\misc.h

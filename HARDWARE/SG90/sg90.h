@@ -3,6 +3,7 @@
 
 #include "stm32f10x.h"
 #include <stdint.h>
+#include "stm32f10x_tim.h"
 
 /* 4 SG90 servos driven by TIM3 PWM, 50Hz (20ms period), 1us resolution
  * Servo1: PA6  TIM3_CH1  -> Recyclable bin lid

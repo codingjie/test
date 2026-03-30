@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\STM32F10x_FWLib\inc;..\USER;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\adc;..\HARDWARE\OLED;..\HARDWARE\MOTOR;..\HARDWARE\BEEP;..\HARDWARE\ASRPRO;..\HARDWARE\DS18B20;..\HARDWARE\KEY;..\HARDWARE\LD2450;..\HARDWARE\SG90;..\HARDWARE\SR501;..\SYSTEM\sys</IncludePath>
+              <IncludePath>..\CORE;..\STM32F10x_FWLib\inc;..\USER;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\adc;..\SYSTEM\sys;..\HARDWARE\OLED;..\HARDWARE\BEEP;..\HARDWARE\ASRPRO;..\HARDWARE\KEY;..\HARDWARE\SG90;..\HARDWARE\ESP01S;..\HARDWARE\INFRARED;..\HARDWARE\RGB;..\HARDWARE\ULTRA</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -410,11 +410,6 @@
               <FilePath>..\HARDWARE\OLED\oled.c</FilePath>
             </File>
             <File>
-              <FileName>motor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\MOTOR\motor.c</FilePath>
-            </File>
-            <File>
               <FileName>beep.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\BEEP\beep.c</FilePath>
@@ -425,19 +420,9 @@
               <FilePath>..\HARDWARE\ASRPRO\asrpro.c</FilePath>
             </File>
             <File>
-              <FileName>ds18b20.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\DS18B20\ds18b20.c</FilePath>
-            </File>
-            <File>
               <FileName>key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\KEY\key.c</FilePath>
-            </File>
-            <File>
-              <FileName>ld2450.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LD2450\ld2450.c</FilePath>
             </File>
             <File>
               <FileName>sg90.c</FileName>
@@ -445,9 +430,24 @@
               <FilePath>..\HARDWARE\SG90\sg90.c</FilePath>
             </File>
             <File>
-              <FileName>sr501.c</FileName>
+              <FileName>esp01s.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\SR501\sr501.c</FilePath>
+              <FilePath>..\HARDWARE\ESP01S\esp01s.c</FilePath>
+            </File>
+            <File>
+              <FileName>infrared.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\INFRARED\infrared.c</FilePath>
+            </File>
+            <File>
+              <FileName>rgb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\RGB\rgb.c</FilePath>
+            </File>
+            <File>
+              <FileName>ultra.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\ULTRA\ultra.c</FilePath>
             </File>
           </Files>
         </Group>

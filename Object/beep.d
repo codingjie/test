@@ -1,0 +1,13 @@
+..\object\beep.o: ..\HARDWARE\BEEP\beep.c
+..\object\beep.o: ..\HARDWARE\BEEP\beep.h
+..\object\beep.o: ..\USER\stm32f10x.h
+..\object\beep.o: ..\CORE\core_cm3.h
+..\object\beep.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+..\object\beep.o: ..\USER\system_stm32f10x.h
+..\object\beep.o: ..\USER\stm32f10x_conf.h
+..\object\beep.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
+..\object\beep.o: ..\USER\stm32f10x.h
+..\object\beep.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\object\beep.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\beep.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\object\beep.o: ..\STM32F10x_FWLib\inc\misc.h
