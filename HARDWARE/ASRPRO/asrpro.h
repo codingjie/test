@@ -4,21 +4,23 @@
 #include "stm32f10x.h"
 #include <stdint.h>
 
-// 识别到语音后发送单字节命令码：
-#define ASRPRO_CMD_FAN_ON       0x61    /* 开启风扇 (ID0, 'a') */
-#define ASRPRO_CMD_FAN_ON2      0x62    /* 打开风扇 (ID1, 'b') */
-#define ASRPRO_CMD_FAN_OFF      0x63    /* 关闭风扇 (ID2, 'c') */
-#define ASRPRO_CMD_SPEED_UP     0x64    /* 增加档位 (ID3, 'd') */
-#define ASRPRO_CMD_SPEED_DOWN   0x65    /* 减小档位 (ID4, 'e') */
-#define ASRPRO_CMD_SPEED_1      0x66    /* 一档风   (ID5, 'f') */
-#define ASRPRO_CMD_SPEED_2      0x67    /* 二档风   (ID6, 'g') */
-#define ASRPRO_CMD_SPEED_3      0x68    /* 三档风   (ID7, 'h') */
-#define ASRPRO_CMD_SWING_ON     0x69    /* 打开摇头 (ID8, 'i') */
-#define ASRPRO_CMD_SWING_OFF    0x6A    /* 关闭摇头 (ID9, 'j') */
-#define ASRPRO_CMD_MODE_MANUAL  0x6B    /* 切换手动模式 (ID10, 'k') */
-#define ASRPRO_CMD_MODE_AUTO    0x6C    /* 切换自动模式 (ID11, 'l') */
-#define ASRPRO_CMD_MODE_VOICE   0x6D    /* 切换语音模式 (ID12, 'm') */
-#define ASRPRO_CMD_MODE_TRACK   0x6E    /* 切换追踪模式 (ID13, 'n') */
+/* ASRPRO voice recognition module sends a single command byte
+ * when a keyword is recognized.
+ *
+ * Trash bin voice commands:
+ *   0x61 -> "可回收垃圾" (recyclable waste)
+ *   0x62 -> "有害垃圾"   (hazardous waste)
+ *   0x63 -> "厨余垃圾"   (kitchen / food waste)
+ *   0x64 -> "其他垃圾"   (other waste)
+ *   0x65 -> "全部打开"   (open all lids)
+ *   0x66 -> "全部关闭"   (close all lids)
+ */
+#define ASRPRO_CMD_BIN_RECYCLABLE   0x61
+#define ASRPRO_CMD_BIN_HAZARDOUS    0x62
+#define ASRPRO_CMD_BIN_KITCHEN      0x63
+#define ASRPRO_CMD_BIN_OTHER        0x64
+#define ASRPRO_CMD_OPEN_ALL         0x65
+#define ASRPRO_CMD_CLOSE_ALL        0x66
 
 #define ASRPRO_USART        USART2
 #define ASRPRO_USART_CLK    RCC_APB1Periph_USART2
@@ -28,7 +30,7 @@
 #define ASRPRO_RX_PIN       GPIO_Pin_3
 #define ASRPRO_BAUDRATE     9600
 
-/* 最近一次接收到的命令，0 表示无新命令，读取后由应用层清零 */
+/* Most-recently received command byte; cleared by application after use */
 extern volatile uint8_t asrpro_rx_cmd;
 
 void ASRPRO_Init(void);

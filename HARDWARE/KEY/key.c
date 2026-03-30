@@ -2,34 +2,33 @@
 #include "delay.h"
 #include "sys.h"
 
-/**
- * @brief 初始化4个按键引脚为上拉输入
- *        PA15 默认为 JTDI，需先关闭 JTAG 才能作普通 GPIO 使用
- */
-void KEY_Init(void) {
+void KEY_Init(void)
+{
     GPIO_InitTypeDef GPIO_InitStructure;
 
-    /* 使能 AFIO 时钟，禁用 JTAG（保留 SWD），释放 PA15 */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-    GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+    /* Enable AFIO + GPIOA + GPIOC clocks */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO
+                           | RCC_APB2Periph_GPIOA
+                           | RCC_APB2Periph_GPIOC, ENABLE);
 
-    RCC_APB2PeriphClockCmd(KEY1_CLK, ENABLE);   /* GPIOA */
-    RCC_APB2PeriphClockCmd(KEY4_CLK, ENABLE);   /* GPIOB */
+    /* Disable JTAG (keep SWD): releases PA15, PB3, PB4 for GPIO use */
+    GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IPU;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 
-    /* PA5, PA8, PA15 上拉输入 */
+    /* PC13, PC14, PC15 */
     GPIO_InitStructure.GPIO_Pin = KEY1_PIN | KEY2_PIN | KEY3_PIN;
-    GPIO_Init(KEY1_PORT, &GPIO_InitStructure);
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
 
-    /* PB0 上拉输入 */
+    /* PA15 */
     GPIO_InitStructure.GPIO_Pin = KEY4_PIN;
-    GPIO_Init(KEY4_PORT, &GPIO_InitStructure);
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
-// 非阻塞按键检测
-uint8_t KEY_Scan(void) {
+/* Non-blocking scan; returns 1~4 on short press release, 0 otherwise */
+uint8_t KEY_Scan(void)
+{
     static uint8_t  last[4]  = {1, 1, 1, 1};
     static uint32_t tick0[4] = {0, 0, 0, 0};
     uint8_t cur[4], i, ret = 0;
@@ -43,8 +42,7 @@ uint8_t KEY_Scan(void) {
         if (cur[i] == 0 && last[i] == 1) {
             tick0[i] = g_tick_ms;
         } else if (cur[i] == 1 && last[i] == 0) {
-            uint32_t dur = g_tick_ms - tick0[i];
-            if (dur >= 20) ret = i + 1;   // 仅短按
+            if ((g_tick_ms - tick0[i]) >= 20) ret = i + 1;
         }
         last[i] = cur[i];
     }
