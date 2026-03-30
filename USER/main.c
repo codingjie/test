@@ -12,37 +12,37 @@
 #include "asrpro.h"
 #include "esp01s.h"
 
-/* ------------------------------------------------------------------ */
-/* Configuration                                                        */
-/* ------------------------------------------------------------------ */
-#define BIN_COUNT        4       /* number of trash bins                */
-#define LID_OPEN_MS   3000       /* auto-close delay after opening (ms) */
-#define ULTRA_CHECK_MS 500       /* overflow check interval (ms)        */
-#define OLED_UPDATE_MS 300       /* OLED refresh interval (ms)          */
-#define BEEP_FULL_MS   200       /* buzzer pulse duration when full (ms) */
+// ----------------------------------------------------------------
+// 配置参数
+// ----------------------------------------------------------------
+#define BIN_COUNT        4       // 垃圾桶数量
+#define LID_OPEN_MS   3000       // 开盖后自动关闭延迟（毫秒）
+#define ULTRA_CHECK_MS 500       // 满溢检测间隔（毫秒）
+#define OLED_UPDATE_MS 300       // OLED刷新间隔（毫秒）
+#define BEEP_FULL_MS   200       // 满仓时蜂鸣器鸣响时长（毫秒）
 
-/* ------------------------------------------------------------------ */
-/* Bin state                                                            */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// 垃圾桶状态
+// ----------------------------------------------------------------
 typedef struct {
-    uint8_t  open;        /* 0 = closed, 1 = open                    */
-    uint32_t open_tick;   /* g_tick_ms when lid was last opened       */
-    uint8_t  full;        /* 0 = not full, 1 = full (overflow)        */
+    uint8_t  open;        // 0=关闭, 1=开启
+    uint32_t open_tick;   // 最后一次开盖时的 g_tick_ms
+    uint8_t  full;        // 0=未满, 1=已满（满溢）
 } BinState_t;
 
 static BinState_t g_bin[BIN_COUNT];
 
-/* Short display names used on the OLED (6 chars + null) */
+// OLED 显示名称（每个6字符+结束符）
 static const char * const bin_name[BIN_COUNT] = {
-    "Recycl",   /* Bin1 - recyclable  */
-    "Hazard",   /* Bin2 - hazardous   */
-    "Kitch ",   /* Bin3 - kitchen     */
-    "Other "    /* Bin4 - other waste */
+    "Recycl",   // 1号桶 - 可回收
+    "Hazard",   // 2号桶 - 有害垃圾
+    "Kitch ",   // 3号桶 - 厨余垃圾
+    "Other "    // 4号桶 - 其他垃圾
 };
 
-/* ------------------------------------------------------------------ */
-/* Lid control helpers                                                  */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// 开盖/关盖辅助函数
+// ----------------------------------------------------------------
 static void OpenBin(uint8_t bin)
 {
     if (bin < 1 || bin > BIN_COUNT) return;
@@ -58,9 +58,9 @@ static void CloseBin(uint8_t bin)
     SG90_Close(bin);
 }
 
-/* ------------------------------------------------------------------ */
-/* IR proximity detection -> auto open                                  */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// 红外感应检测 -> 自动开盖
+// ----------------------------------------------------------------
 static void IRProcess(void)
 {
     uint8_t i;
@@ -69,16 +69,16 @@ static void IRProcess(void)
             if (!g_bin[i - 1].open) {
                 OpenBin(i);
             } else {
-                /* person still present: refresh the auto-close timer  */
+                // 人还在：刷新自动关盖计时
                 g_bin[i - 1].open_tick = g_tick_ms;
             }
         }
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Auto-close lids after LID_OPEN_MS                                   */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// 超过 LID_OPEN_MS 后自动关盖
+// ----------------------------------------------------------------
 static void AutoCloseProcess(void)
 {
     uint8_t i;
@@ -91,9 +91,9 @@ static void AutoCloseProcess(void)
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Voice command handling                                               */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// 语音命令处理
+// ----------------------------------------------------------------
 static void VoiceProcess(void)
 {
     uint8_t cmd = asrpro_rx_cmd;
@@ -115,9 +115,9 @@ static void VoiceProcess(void)
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Button handling: short press on KEY1~KEY4 toggles that bin lid       */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// 按键处理：短按 KEY1~KEY4 切换对应垃圾桶桶盖
+// ----------------------------------------------------------------
 static void KeyProcess(void)
 {
     uint8_t key = KEY_Scan();
@@ -129,19 +129,19 @@ static void KeyProcess(void)
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Overflow detection via ultrasonic sensors                            */
-/* Lights LEDs, sounds buzzer, and sends WiFi notification when full.  */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// 超声波满溢检测
+// 满仓时点亮LED并触发蜂鸣器报警
+// （WiFi通知由机智云框架负责，此处不再调用ESP01S）
+// ----------------------------------------------------------------
 static void OverflowProcess(void)
 {
     static uint32_t last_check  = 0;
     static uint8_t  beep_active = 0;
     static uint32_t beep_tick   = 0;
     uint8_t i, any_full = 0;
-    char    msg[20];
 
-    /* Deactivate buzzer after BEEP_FULL_MS */
+    // 蜂鸣器鸣响时长到期后关闭
     if (beep_active && (g_tick_ms - beep_tick) >= BEEP_FULL_MS) {
         BEEP_OFF();
         beep_active = 0;
@@ -151,19 +151,12 @@ static void OverflowProcess(void)
     last_check = g_tick_ms;
 
     for (i = 1; i <= BIN_COUNT; i++) {
-        uint8_t was_full = g_bin[i - 1].full;
         g_bin[i - 1].full = ULTRA_IsFull(i);
         LED_SetBinStatus(i, g_bin[i - 1].full);
-
-        /* Send WiFi notification the moment a bin becomes full */
-        if (!was_full && g_bin[i - 1].full) {
-            snprintf(msg, sizeof(msg), "BIN%d FULL\r\n", i);
-            ESP01S_SendString(msg);
-        }
         if (g_bin[i - 1].full) any_full = 1;
     }
 
-    /* Buzzer beep when any bin is full */
+    // 有任意垃圾桶满仓时触发蜂鸣器
     if (any_full && !beep_active) {
         BEEP_ON();
         beep_active = 1;
@@ -171,15 +164,15 @@ static void OverflowProcess(void)
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* OLED display update                                                  */
-/* Layout (128x64, 8 rows of 8px each):
- *   Row 0: "Smart Trash Bin "
- *   Row 2: "Recycl:OPEN FUL"  or  "Recycl:CLSD    "
- *   Row 3: "Hazard:OPEN FUL"
- *   Row 4: "Kitch :CLSD    "
- *   Row 5: "Other :CLSD    "
- * ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// OLED 显示刷新
+// 布局（128x64，每行8px，共8行）：
+//   第0行: "Smart Trash Bin "
+//   第2行: "Recycl:OPEN FUL" 或 "Recycl:CLSD    "
+//   第3行: "Hazard:OPEN FUL"
+//   第4行: "Kitch :CLSD    "
+//   第5行: "Other :CLSD    "
+// ----------------------------------------------------------------
 static void OledUpdate(void)
 {
     static uint32_t last_t = 0;
@@ -200,9 +193,9 @@ static void OledUpdate(void)
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Main entry point                                                     */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------
+// 主函数入口
+// ----------------------------------------------------------------
 int main(void)
 {
     uint8_t i;
@@ -211,26 +204,26 @@ int main(void)
     delay_init();
     App_TickInit();
 
-    /* Peripheral initialisation */
-    KEY_Init();             /* PC13/PC14/PC15/PA15 buttons (also disables JTAG) */
-    LED_Init();             /* 8 status LEDs                                    */
-    BEEP_GPIO_Config();     /* PB12 buzzer                                      */
-    OLED_Init();            /* PB10/PB11 software I2C OLED                      */
-    SG90_Init();            /* TIM3 CH1-4: PA6/PA7/PB0/PB1 servos              */
-    IR_Init();              /* PA4/PA5/PA11/PA12 IR proximity sensors           */
-    ULTRA_Init();           /* PA8 TRIG + PB6-9 ECHO ultrasonic sensors        */
-    ASRPRO_Init();          /* USART2 PA2/PA3 voice recognition module          */
-    ESP01S_Init();          /* USART1 PA9/PA10 WiFi module                      */
+    // 外设初始化
+    KEY_Init();             // PC13/PC14/PC15/PA15 按键（同时禁用JTAG）
+    LED_Init();             // 8路状态LED
+    BEEP_GPIO_Config();     // PB12 蜂鸣器
+    OLED_Init();            // PB10/PB11 软件I2C OLED
+    SG90_Init();            // TIM3 CH1-4：PA6/PA7/PB0/PB1 舵机
+    IR_Init();              // PA4/PA5/PA11/PA12 红外接近传感器
+    ULTRA_Init();           // PA8 TRIG + PB6-9 ECHO 超声波传感器
+    ASRPRO_Init();          // USART2 PA2/PA3 语音识别模块
+    // ESP01S 由机智云框架管理，此处不初始化
 
-    /* Initial state: all bins closed, not full */
+    // 初始状态：所有垃圾桶关闭且未满
     for (i = 0; i < BIN_COUNT; i++) {
         g_bin[i].open      = 0;
         g_bin[i].open_tick = 0;
         g_bin[i].full      = 0;
-        LED_SetBinStatus(i + 1, 0);   /* green LED on for each bin */
+        LED_SetBinStatus(i + 1, 0);   // 每个桶绿灯亮
     }
 
-    /* Splash screen */
+    // 开机欢迎界面
     OLED_Clear();
     OLED_ShowString(4,  2, (uint8_t *)"Smart Trash Bin");
     OLED_ShowString(20, 4, (uint8_t *)"Initializing..");

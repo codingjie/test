@@ -3,11 +3,11 @@
 static uint16_t angle_to_pulse(uint8_t angle)
 {
     if (angle > 180) angle = 180;
-    /* linear map: 0deg -> 500us, 180deg -> 2500us */
+    // 线性映射：0° -> 500us，180° -> 2500us
     return 500 + (uint16_t)((uint32_t)angle * 2000 / 180);
 }
 
-/* Initialize TIM3 CH1-CH4 PWM for 4 servos */
+// 初始化TIM3 CH1-CH4 PWM，驱动4路舵机
 void SG90_Init(void)
 {
     GPIO_InitTypeDef        GPIO_InitStructure;
@@ -18,24 +18,24 @@ void SG90_Init(void)
                            | RCC_APB2Periph_AFIO, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
-    /* PA6 (CH1), PA7 (CH2) - AF push-pull */
+    // PA6（CH1）、PA7（CH2）- 复用推挽输出
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_6 | GPIO_Pin_7;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    /* PB0 (CH3), PB1 (CH4) - AF push-pull */
+    // PB0（CH3）、PB1（CH4）- 复用推挽输出
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    /* TIM3 time base: 1MHz tick, 20ms period (50Hz) */
+    // TIM3时基：1MHz节拍，20ms周期（50Hz）
     TIM_TimeBaseStructure.TIM_Period        = SG90_TIM_PERIOD;
     TIM_TimeBaseStructure.TIM_Prescaler     = SG90_TIM_PRESCALER;
     TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 
-    /* PWM mode1, all 4 channels start at close position */
+    // PWM模式1，4路通道初始位置均为关盖角度
     TIM_OCInitStructure.TIM_OCMode      = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_Pulse       = angle_to_pulse(SERVO_CLOSE_ANGLE);

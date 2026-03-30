@@ -4,17 +4,15 @@
 #include "stm32f10x.h"
 #include <stdint.h>
 
-/* ASRPRO voice recognition module sends a single command byte
- * when a keyword is recognized.
- *
- * Trash bin voice commands:
- *   0x61 -> "可回收垃圾" (recyclable waste)
- *   0x62 -> "有害垃圾"   (hazardous waste)
- *   0x63 -> "厨余垃圾"   (kitchen / food waste)
- *   0x64 -> "其他垃圾"   (other waste)
- *   0x65 -> "全部打开"   (open all lids)
- *   0x66 -> "全部关闭"   (close all lids)
- */
+// ASRPRO 语音识别模块识别到关键词后发送单字节命令
+//
+// 垃圾桶语音命令：
+//   0x61 -> "可回收垃圾"
+//   0x62 -> "有害垃圾"
+//   0x63 -> "厨余垃圾"
+//   0x64 -> "其他垃圾"
+//   0x65 -> "全部打开"
+//   0x66 -> "全部关闭"
 #define ASRPRO_CMD_BIN_RECYCLABLE   0x61
 #define ASRPRO_CMD_BIN_HAZARDOUS    0x62
 #define ASRPRO_CMD_BIN_KITCHEN      0x63
@@ -30,7 +28,7 @@
 #define ASRPRO_RX_PIN       GPIO_Pin_3
 #define ASRPRO_BAUDRATE     9600
 
-/* Most-recently received command byte; cleared by application after use */
+// 最近一次接收到的命令字节，应用层读取后清零
 extern volatile uint8_t asrpro_rx_cmd;
 
 void ASRPRO_Init(void);

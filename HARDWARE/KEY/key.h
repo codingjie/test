@@ -4,12 +4,11 @@
 #include "stm32f10x.h"
 #include <stdint.h>
 
-/* 4 buttons, active LOW (internal pull-up)
- * KEY1: PC13
- * KEY2: PC14
- * KEY3: PC15
- * KEY4: PA15  (JTAG disabled to use as GPIO)
- */
+// 4个按键，低电平有效（内部上拉）
+// KEY1: PC13
+// KEY2: PC14
+// KEY3: PC15
+// KEY4: PA15（禁用JTAG后用作GPIO）
 #define KEY1_PORT   GPIOC
 #define KEY1_PIN    GPIO_Pin_13
 #define KEY2_PORT   GPIOC
@@ -25,6 +24,6 @@
 #define KEY4_READ() GPIO_ReadInputDataBit(KEY4_PORT, KEY4_PIN)
 
 void    KEY_Init(void);
-uint8_t KEY_Scan(void);   /* returns 1~4 on short press, 0 if none */
+uint8_t KEY_Scan(void);   // 短按返回1~4，无按键返回0
 
 #endif

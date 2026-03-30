@@ -1,6 +1,6 @@
 #include "infrared.h"
 
-/* All 4 IR ECHO pins are on GPIOA */
+// 4路红外ECHO引脚均在GPIOA上
 void IR_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -14,7 +14,7 @@ void IR_Init(void)
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
-/* Returns 1 when obstacle (person) is detected (pin LOW), 0 otherwise */
+// 检测到障碍物（人体）时引脚为低电平，返回1；否则返回0
 uint8_t IR_Detected(uint8_t ch)
 {
     switch (ch) {
