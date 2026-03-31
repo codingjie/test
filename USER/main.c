@@ -217,13 +217,14 @@ int main(void)
     ASRPRO_Init();          // USART2 PA2/PA3 语音识别模块
     // ESP01S 由机智云框架管理，此处不初始化
 
-    // 初始状态：所有垃圾桶关闭且未满
+    // 初始状态：所有垃圾桶关闭且未满（逐个关盖，避免同时驱动电流过大）
     for (i = 0; i < BIN_COUNT; i++) {
         g_bin[i].open      = 0;
         g_bin[i].open_tick = 0;
         g_bin[i].full      = 0;
-        LED_SetBinStatus(i + 1, 0);   // 每个桶绿灯亮
-        SG90_Close(i + 1);            // 上电后确保桶盖关闭
+        LED_SetBinStatus(i + 1, 0);
+        SG90_Close(i + 1);
+        delay_ms(300);
     }
 
     // 开机欢迎界面
