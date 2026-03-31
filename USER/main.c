@@ -139,12 +139,15 @@ static void OverflowProcess(void)
     if ((g_tick_ms - last_check) < ULTRA_CHECK_MS) return;
     last_check = g_tick_ms;
 
-    for (i = 1; i <= BIN_COUNT; i++) {
-        uint16_t d = ULTRA_GetDistance_mm(i);
-        g_bin[i - 1].dist_mm = (d == 0xFFFF || d > 99) ? 99 : (uint8_t)d;
-        g_bin[i - 1].full    = (d != 0xFFFF && d < ULTRA_FULL_MM) ? 1 : 0;
-        LED_SetBinStatus(i, g_bin[i - 1].full);
-        if (g_bin[i - 1].full) any_full = 1;
+    {
+        uint16_t d[BIN_COUNT];
+        ULTRA_MeasureAll(d);          /* 一次TRIG，4路同时捕获 */
+        for (i = 0; i < BIN_COUNT; i++) {
+            g_bin[i].dist_mm = (d[i] == 0xFFFF || d[i] > 99) ? 99 : (uint8_t)d[i];
+            g_bin[i].full    = (d[i] != 0xFFFF && d[i] < ULTRA_FULL_MM) ? 1 : 0;
+            LED_SetBinStatus(i + 1, g_bin[i].full);
+            if (g_bin[i].full) any_full = 1;
+        }
     }
 
     // 有任意垃圾桶满仓时触发蜂鸣器

@@ -17,8 +17,9 @@
 #define ULTRA_FULL_MM   20  // 距离小于视为垃圾桶已满（mm）
 
 void     ULTRA_Init(void);
-uint16_t ULTRA_GetDistance_cm(uint8_t ch);   // ch: 1~4；超时返回0xFFFF
-uint16_t ULTRA_GetDistance_mm(uint8_t ch);   // ch: 1~4；超时返回0xFFFF
-uint8_t  ULTRA_IsFull(uint8_t ch);           // 1=已满, 0=未满
+void     ULTRA_MeasureAll(uint16_t dist_mm[4]);  // 一次TRIG，4路同时捕获；超时置0xFFFF
+uint16_t ULTRA_GetDistance_cm(uint8_t ch);       // ch: 1~4；超时返回0xFFFF
+uint16_t ULTRA_GetDistance_mm(uint8_t ch);       // ch: 1~4；超时返回0xFFFF
+uint8_t  ULTRA_IsFull(uint8_t ch);               // 1=已满, 0=未满
 
 #endif
