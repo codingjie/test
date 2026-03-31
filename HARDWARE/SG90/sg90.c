@@ -80,5 +80,8 @@ void SG90_Open(uint8_t ch)
 
 void SG90_Close(uint8_t ch)
 {
-    SG90_SetAngle(ch, SG90_ANGLE_CLOSE);
+    if (ch == 2)
+        SG90_SetAngle(ch, SG90_ANGLE_CLOSE - 10);
+    else 
+        SG90_SetAngle(ch, SG90_ANGLE_CLOSE);
 }
