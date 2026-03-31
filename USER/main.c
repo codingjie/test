@@ -12,19 +12,14 @@
 #include "asrpro.h"
 #include "esp01s.h"
 
-// ----------------------------------------------------------------
 // 配置参数
-// ----------------------------------------------------------------
 #define BIN_COUNT        4       // 垃圾桶数量
 #define LID_OPEN_MS   3000       // 开盖后自动关闭延迟（毫秒）
 #define ULTRA_CHECK_MS 500       // 满溢检测间隔（毫秒）
 #define OLED_UPDATE_MS 300       // OLED刷新间隔（毫秒）
 #define BEEP_FULL_MS   200       // 满仓时蜂鸣器鸣响时长（毫秒）
-#define IR_STABLE_MS  3000       // 上电后红外传感器稳定等待时间（毫秒）
 
-// ----------------------------------------------------------------
 // 垃圾桶状态
-// ----------------------------------------------------------------
 typedef struct {
     uint8_t  open;        // 0=关闭, 1=开启
     uint32_t open_tick;   // 最后一次开盖时的 g_tick_ms
@@ -41,9 +36,7 @@ static const char * const bin_name[BIN_COUNT] = {
     "Other "    // 4号桶 - 其他垃圾
 };
 
-// ----------------------------------------------------------------
-// 开盖/关盖辅助函数
-// ----------------------------------------------------------------
+// 开盖/关盖函数
 static void OpenBin(uint8_t bin)
 {
     if (bin < 1 || bin > BIN_COUNT) return;
@@ -59,13 +52,10 @@ static void CloseBin(uint8_t bin)
     SG90_Close(bin);
 }
 
-// ----------------------------------------------------------------
 // 红外感应检测 -> 自动开盖
-// ----------------------------------------------------------------
 static void IRProcess(void)
 {
     uint8_t i;
-    if (g_tick_ms < IR_STABLE_MS) return;   // 等待传感器稳定，忽略上电噪声
     for (i = 1; i <= BIN_COUNT; i++) {
         if (IR_Detected(i)) {
             if (!g_bin[i - 1].open) {
@@ -78,9 +68,7 @@ static void IRProcess(void)
     }
 }
 
-// ----------------------------------------------------------------
 // 超过 LID_OPEN_MS 后自动关盖
-// ----------------------------------------------------------------
 static void AutoCloseProcess(void)
 {
     uint8_t i;
@@ -94,9 +82,7 @@ static void AutoCloseProcess(void)
     }
 }
 
-// ----------------------------------------------------------------
 // 语音命令处理
-// ----------------------------------------------------------------
 static void VoiceProcess(void)
 {
     uint8_t cmd = asrpro_rx_cmd;
@@ -121,9 +107,7 @@ static void VoiceProcess(void)
     }
 }
 
-// ----------------------------------------------------------------
 // 按键处理：短按 KEY1~KEY4 切换对应垃圾桶桶盖
-// ----------------------------------------------------------------
 static void KeyProcess(void)
 {
     uint8_t key = KEY_Scan();
@@ -135,11 +119,9 @@ static void KeyProcess(void)
     }
 }
 
-// ----------------------------------------------------------------
 // 超声波满溢检测
 // 满仓时点亮LED并触发蜂鸣器报警
 // （WiFi通知由机智云框架负责，此处不再调用ESP01S）
-// ----------------------------------------------------------------
 static void OverflowProcess(void)
 {
     static uint32_t last_check  = 0;
@@ -170,7 +152,6 @@ static void OverflowProcess(void)
     }
 }
 
-// ----------------------------------------------------------------
 // OLED 显示刷新
 // 布局（128x64，每行8px，共8行）：
 //   第0行: "Smart Trash Bin "
@@ -178,7 +159,6 @@ static void OverflowProcess(void)
 //   第3行: "Hazard:OPEN FUL"
 //   第4行: "Kitch :CLSD    "
 //   第5行: "Other :CLSD    "
-// ----------------------------------------------------------------
 static void OledUpdate(void)
 {
     static uint32_t last_t = 0;
@@ -197,11 +177,7 @@ static void OledUpdate(void)
     }
 }
 
-// ----------------------------------------------------------------
-// 主函数入口
-// ----------------------------------------------------------------
-int main(void)
-{
+int main(void) {
     uint8_t i;
 
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
@@ -230,16 +206,16 @@ int main(void)
     // 开机欢迎界面，同时等待红外传感器稳定
     OLED_Clear();
     OLED_ShowString(4,  2, (uint8_t *)"Smart Trash Bin");
-    OLED_ShowString(20, 4, (uint8_t *)"Initializing..");
+    OLED_ShowString(4, 4, (uint8_t *)"Initializing...");
     delay_ms(1500);
     OLED_Clear();
 
     while (1) {
-        IRProcess();
         VoiceProcess();
         KeyProcess();
         AutoCloseProcess();
         OverflowProcess();
         OledUpdate();
+        IRProcess();
     }
 }
