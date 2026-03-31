@@ -225,11 +225,11 @@ int main(void)
         LED_SetBinStatus(i + 1, 0);
     }
 
-    // 开机欢迎界面
+    // 开机欢迎界面，同时等待红外传感器稳定
     OLED_Clear();
     OLED_ShowString(4,  2, (uint8_t *)"Smart Trash Bin");
     OLED_ShowString(20, 4, (uint8_t *)"Initializing..");
-    delay_ms(1500);
+    delay_ms(2000);
     OLED_Clear();
 
     while (1) {
