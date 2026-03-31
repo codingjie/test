@@ -1,12 +1,15 @@
 #include "ultra.h"
 #include "delay.h"
-#include "core_cm3.h"
 
 #define TRIG_PORT   GPIOA
 #define TRIG_PIN    GPIO_Pin_8
 
 /* SYSCLK = 72MHz */
 #define CYCLES_PER_US   72UL
+
+/* DWT 寄存器直接地址（Cortex-M3，不依赖 CMSIS DWT 结构体）*/
+#define DWT_CTRL    (*(volatile uint32_t *)0xE0001000UL)
+#define DWT_CYCCNT  (*(volatile uint32_t *)0xE0001004UL)
 
 static const uint16_t echo_pin[4] = {
     GPIO_Pin_6,   // ECHO1 - PB6
@@ -35,13 +38,13 @@ void ULTRA_Init(void)
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     // 使能 DWT 周期计数器，用于精确计时
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    DWT->CYCCNT = 0;
-    DWT->CTRL  |= DWT_CTRL_CYCCNTENA_Msk;
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;  /* bit24: TRCENA */
+    DWT_CYCCNT = 0;
+    DWT_CTRL  |= (1UL << 0);                          /* bit0: CYCCNTENA */
 }
 
 // 返回距离（毫米），超时或异常返回 0xFFFF
-// 精确计时：使用 DWT->CYCCNT (72MHz)，避免 delay_us 循环误差
+// 精确计时：使用 DWT_CYCCNT (72MHz)，避免 delay_us 循环误差
 uint16_t ULTRA_GetDistance_mm(uint8_t ch)
 {
     uint32_t t1, t2, deadline;
@@ -56,22 +59,22 @@ uint16_t ULTRA_GetDistance_mm(uint8_t ch)
     GPIO_ResetBits(TRIG_PORT, TRIG_PIN);
 
     // 等待 ECHO 变高（最长 30ms）
-    deadline = DWT->CYCCNT + CYCLES_PER_US * 30000UL;
+    deadline = DWT_CYCCNT + CYCLES_PER_US * 30000UL;
     while (GPIO_ReadInputDataBit(GPIOB, pin) == Bit_RESET) {
-        if ((int32_t)(DWT->CYCCNT - deadline) >= 0) return 0xFFFF;
+        if ((int32_t)(DWT_CYCCNT - deadline) >= 0) return 0xFFFF;
     }
 
     // 记录 ECHO 上升沿时刻
-    t1 = DWT->CYCCNT;
+    t1 = DWT_CYCCNT;
 
     // 等待 ECHO 变低（最长 30ms）
     deadline = t1 + CYCLES_PER_US * 30000UL;
     while (GPIO_ReadInputDataBit(GPIOB, pin) == Bit_SET) {
-        if ((int32_t)(DWT->CYCCNT - deadline) >= 0) return 0xFFFF;
+        if ((int32_t)(DWT_CYCCNT - deadline) >= 0) return 0xFFFF;
     }
 
     // 记录 ECHO 下降沿时刻
-    t2 = DWT->CYCCNT;
+    t2 = DWT_CYCCNT;
 
     // 距离(mm) = echo时长(us) / 5.8
     //           = (t2 - t1) / CYCLES_PER_US / 5.8
