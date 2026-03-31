@@ -1,4 +1,5 @@
 #include "sg90.h"
+#include "delay.h"
 
 void SG90_Init(void) {
     GPIO_InitTypeDef        gi;
@@ -26,19 +27,27 @@ void SG90_Init(void) {
     tb.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &tb);
 
-    /* 四路 PWM，初始脉宽 500us（0°=开盖），与上电时桶盖实际状态一致，避免启动电流冲击 */
-    oc.TIM_OCMode      = TIM_OCMode_PWM1;
-    oc.TIM_OutputState = TIM_OutputState_Enable;
-    oc.TIM_Pulse       = SG90_PULSE_MIN;
-    oc.TIM_OCPolarity  = TIM_OCPolarity_High;
+    oc.TIM_OCMode     = TIM_OCMode_PWM1;
+    oc.TIM_OCPolarity = TIM_OCPolarity_High;
+    oc.TIM_Pulse      = SG90_PULSE_MIN;   /* 初始脉宽与实际位置一致，上电不产生运动 */
 
+    /* 第一组 CH1/CH2 输出使能 */
+    oc.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OC1Init(TIM3, &oc); TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
     TIM_OC2Init(TIM3, &oc); TIM_OC2PreloadConfig(TIM3, TIM_OCPreload_Enable);
+
+    /* 第二组 CH3/CH4 先禁用输出，等第一组稳定后再开启 */
+    oc.TIM_OutputState = TIM_OutputState_Disable;
     TIM_OC3Init(TIM3, &oc); TIM_OC3PreloadConfig(TIM3, TIM_OCPreload_Enable);
     TIM_OC4Init(TIM3, &oc); TIM_OC4PreloadConfig(TIM3, TIM_OCPreload_Enable);
 
     TIM_ARRPreloadConfig(TIM3, ENABLE);
     TIM_Cmd(TIM3, ENABLE);
+
+    /* 等待第一组舵机稳定后再驱动第二组 */
+    delay_ms(300);
+    TIM_CCxCmd(TIM3, TIM_Channel_3, TIM_CCx_Enable);
+    TIM_CCxCmd(TIM3, TIM_Channel_4, TIM_CCx_Enable);
 }
 
 void SG90_SetPulse(uint8_t ch, uint16_t pulse_us)
