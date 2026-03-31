@@ -20,6 +20,7 @@
 #define ULTRA_CHECK_MS 500       // 满溢检测间隔（毫秒）
 #define OLED_UPDATE_MS 300       // OLED刷新间隔（毫秒）
 #define BEEP_FULL_MS   200       // 满仓时蜂鸣器鸣响时长（毫秒）
+#define IR_STABLE_MS  3000       // 上电后红外传感器稳定等待时间（毫秒）
 
 // ----------------------------------------------------------------
 // 垃圾桶状态
@@ -64,6 +65,7 @@ static void CloseBin(uint8_t bin)
 static void IRProcess(void)
 {
     uint8_t i;
+    if (g_tick_ms < IR_STABLE_MS) return;   // 等待传感器稳定，忽略上电噪声
     for (i = 1; i <= BIN_COUNT; i++) {
         if (IR_Detected(i)) {
             if (!g_bin[i - 1].open) {
@@ -229,7 +231,7 @@ int main(void)
     OLED_Clear();
     OLED_ShowString(4,  2, (uint8_t *)"Smart Trash Bin");
     OLED_ShowString(20, 4, (uint8_t *)"Initializing..");
-    delay_ms(2000);
+    delay_ms(1500);
     OLED_Clear();
 
     while (1) {
