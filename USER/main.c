@@ -48,14 +48,14 @@ static void OpenBin(uint8_t bin)
     if (bin < 1 || bin > BIN_COUNT) return;
     g_bin[bin - 1].open      = 1;
     g_bin[bin - 1].open_tick = g_tick_ms;
-    // SG90_Open(bin);
+    SG90_Open(bin);
 }
 
 static void CloseBin(uint8_t bin)
 {
     if (bin < 1 || bin > BIN_COUNT) return;
     g_bin[bin - 1].open = 0;
-    // SG90_Close(bin);
+    SG90_Close(bin);
 }
 
 // ----------------------------------------------------------------
@@ -219,6 +219,7 @@ int main(void)
         g_bin[i].open_tick = 0;
         g_bin[i].full      = 0;
         LED_SetBinStatus(i + 1, 0);   // 每个桶绿灯亮
+        SG90_Close(i + 1);            // 上电后确保桶盖关闭
     }
 
     // 开机欢迎界面
@@ -229,19 +230,11 @@ int main(void)
     OLED_Clear();
 
     while (1) {
-        // IRProcess();
-        // VoiceProcess();
-        // KeyProcess();
-        // AutoCloseProcess();
-        // OverflowProcess();
+        IRProcess();
+        VoiceProcess();
+        KeyProcess();
+        AutoCloseProcess();
+        OverflowProcess();
         OledUpdate();
-        SG90_SetAngle(1, 0); // 开桶
-        delay_ms(1000);
-        SG90_SetAngle(2, 0); // 开桶
-        delay_ms(1000);
-        SG90_SetAngle(3, 0); // 开桶
-        delay_ms(1000);
-        SG90_SetAngle(4, 0); // 开桶
-        delay_ms(1000);
     }
 }

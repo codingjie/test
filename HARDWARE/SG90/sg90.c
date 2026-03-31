@@ -63,3 +63,13 @@ void SG90_SetAngle(uint8_t ch, uint8_t angle)
     pulse = SG90_PULSE_MIN + (uint16_t)((uint32_t)angle * 2000 / 180);
     SG90_SetPulse(ch, pulse);
 }
+
+void SG90_Open(uint8_t ch)
+{
+    SG90_SetAngle(ch, SG90_ANGLE_OPEN);
+}
+
+void SG90_Close(uint8_t ch)
+{
+    SG90_SetAngle(ch, SG90_ANGLE_CLOSE);
+}

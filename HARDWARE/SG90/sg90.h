@@ -31,12 +31,14 @@
 #define SG90_ANGLE_MIN      0
 #define SG90_ANGLE_MAX      180
 
-#define SERVO_CENTER        100
-#define SERVO_MIN           40
-#define SERVO_MAX           160
+/* ---- 桶盖角度 ---- */
+#define SG90_ANGLE_OPEN     0       /* 0°  → 开盖 */
+#define SG90_ANGLE_CLOSE    90      /* 90° → 关盖 */
 
 void    SG90_Init(void);
 void    SG90_SetPulse(uint8_t ch, uint16_t pulse_us);   /* ch: 1~4 */
 void    SG90_SetAngle(uint8_t ch, uint8_t angle);       /* ch: 1~4, angle: 0~180 */
+void    SG90_Open(uint8_t ch);                          /* ch: 1~4, 开盖 */
+void    SG90_Close(uint8_t ch);                         /* ch: 1~4, 关盖 */
 
 #endif
