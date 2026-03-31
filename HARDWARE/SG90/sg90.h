@@ -34,6 +34,7 @@
 /* ---- 桶盖角度 ---- */
 #define SG90_ANGLE_OPEN     0       /* 0°  → 开盖 */
 #define SG90_ANGLE_CLOSE    90      /* 90° → 关盖 */
+#define SG90_ANGLE_CLOSE_2  80      /* 80° → 有害垃圾桶关盖 */
 
 void    SG90_Init(void);
 void    SG90_SetPulse(uint8_t ch, uint16_t pulse_us);   /* ch: 1~4 */

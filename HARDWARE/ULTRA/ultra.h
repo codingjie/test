@@ -13,10 +13,12 @@
 // 依次触发各路传感器（每次触发一路）
 // 距离 = echo高电平时间(us) / 58（厘米）
 
-#define ULTRA_FULL_CM   2   // 距离小于视为垃圾桶已满
+#define ULTRA_FULL_CM   2   // 距离小于视为垃圾桶已满（cm）
+#define ULTRA_FULL_MM   20  // 距离小于视为垃圾桶已满（mm）
 
 void     ULTRA_Init(void);
-uint16_t ULTRA_GetDistance_cm(uint8_t ch);  // ch: 1~4；超时返回0xFFFF
-uint8_t  ULTRA_IsFull(uint8_t ch);          // 1=已满, 0=未满
+uint16_t ULTRA_GetDistance_cm(uint8_t ch);   // ch: 1~4；超时返回0xFFFF
+uint16_t ULTRA_GetDistance_mm(uint8_t ch);   // ch: 1~4；超时返回0xFFFF
+uint8_t  ULTRA_IsFull(uint8_t ch);           // 1=已满, 0=未满
 
 #endif

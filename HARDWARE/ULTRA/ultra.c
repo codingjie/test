@@ -63,9 +63,38 @@ uint16_t ULTRA_GetDistance_cm(uint8_t ch)
     return (uint16_t)(t / 58);
 }
 
+// 返回距离（毫米），超时返回0xFFFF
+uint16_t ULTRA_GetDistance_mm(uint8_t ch)
+{
+    uint32_t t;
+    uint16_t pin;
+
+    if (ch < 1 || ch > 4) return 0xFFFF;
+    pin = echo_pin[ch - 1];
+
+    GPIO_SetBits(TRIG_PORT, TRIG_PIN);
+    delay_us(10);
+    GPIO_ResetBits(TRIG_PORT, TRIG_PIN);
+
+    t = 0;
+    while (GPIO_ReadInputDataBit(GPIOB, pin) == Bit_RESET) {
+        delay_us(1);
+        if (++t > 30000) return 0xFFFF;
+    }
+
+    t = 0;
+    while (GPIO_ReadInputDataBit(GPIOB, pin) == Bit_SET) {
+        delay_us(1);
+        if (++t > 30000) return 0xFFFF;
+    }
+
+    // 距离(mm) = t * 10 / 58
+    return (uint16_t)(t * 10 / 58);
+}
+
 uint8_t ULTRA_IsFull(uint8_t ch)
 {
-    uint16_t d = ULTRA_GetDistance_cm(ch);
+    uint16_t d = ULTRA_GetDistance_mm(ch);
     if (d == 0xFFFF) return 0;   // 传感器异常，视为未满
-    return (d < ULTRA_FULL_CM) ? 1 : 0;
+    return (d < ULTRA_FULL_MM) ? 1 : 0;
 }

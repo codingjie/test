@@ -29,14 +29,18 @@ void SG90_Init(void) {
 
     oc.TIM_OCMode      = TIM_OCMode_PWM1;
     oc.TIM_OCPolarity  = TIM_OCPolarity_High;
-    oc.TIM_Pulse       = 1500;            /* 90° = 关盖 */
-
-    /* 第一组 CH1/CH2 使能输出 */
     oc.TIM_OutputState = TIM_OutputState_Enable;
+
+    /* CH1 (可回收) 关盖 90° → 1500us */
+    oc.TIM_Pulse = SG90_PULSE_MIN + (uint16_t)((uint32_t)SG90_ANGLE_CLOSE * 2000 / 180);
     TIM_OC1Init(TIM3, &oc); TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
+
+    /* CH2 (有害) 关盖 80° → 1389us */
+    oc.TIM_Pulse = SG90_PULSE_MIN + (uint16_t)((uint32_t)SG90_ANGLE_CLOSE_2 * 2000 / 180);
     TIM_OC2Init(TIM3, &oc); TIM_OC2PreloadConfig(TIM3, TIM_OCPreload_Enable);
 
-    /* 第二组 CH3/CH4 暂时禁用输出 */
+    /* CH3 (厨余) / CH4 (其他) 关盖 90° → 1500us，暂时禁用输出 */
+    oc.TIM_Pulse       = SG90_PULSE_MIN + (uint16_t)((uint32_t)SG90_ANGLE_CLOSE * 2000 / 180);
     oc.TIM_OutputState = TIM_OutputState_Disable;
     TIM_OC3Init(TIM3, &oc); TIM_OC3PreloadConfig(TIM3, TIM_OCPreload_Enable);
     TIM_OC4Init(TIM3, &oc); TIM_OC4PreloadConfig(TIM3, TIM_OCPreload_Enable);

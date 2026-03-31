@@ -24,6 +24,7 @@ typedef struct {
     uint8_t  open;        // 0=关闭, 1=开启
     uint32_t open_tick;   // 最后一次开盖时的 g_tick_ms
     uint8_t  full;        // 0=未满, 1=已满（满溢）
+    uint8_t  dist_mm;     // 超声波检测距离（mm），上限99
 } BinState_t;
 
 static BinState_t g_bin[BIN_COUNT];
@@ -139,7 +140,9 @@ static void OverflowProcess(void)
     last_check = g_tick_ms;
 
     for (i = 1; i <= BIN_COUNT; i++) {
-        g_bin[i - 1].full = ULTRA_IsFull(i);
+        uint16_t d = ULTRA_GetDistance_mm(i);
+        g_bin[i - 1].dist_mm = (d == 0xFFFF || d > 99) ? 99 : (uint8_t)d;
+        g_bin[i - 1].full    = (d != 0xFFFF && d < ULTRA_FULL_MM) ? 1 : 0;
         LED_SetBinStatus(i, g_bin[i - 1].full);
         if (g_bin[i - 1].full) any_full = 1;
     }
@@ -154,25 +157,28 @@ static void OverflowProcess(void)
 
 // OLED 显示刷新
 // 布局（128x64，每行8px，共8行）：
-//   第0行: "Smart Trash Bin "
-//   第2行: "Recycl:OPEN FUL" 或 "Recycl:CLSD    "
-//   第3行: "Hazard:OPEN FUL"
-//   第4行: "Kitch :CLSD    "
-//   第5行: "Other :CLSD    "
+//   第0行: "Smart Trash Bin"
+//   第2行: "Recycl:OPEN 25mm"  (或 CLSD/FULL + 2位mm距离)
+//   第4行: "Hazard:CLSD  8mm"
+//   第6行: "Kitch :FULL  3mm"
+//   第8行: "Other :CLSD 50mm"
 static void OledUpdate(void)
 {
     static uint32_t last_t = 0;
     char buf[17];
+    const char *state;
     uint8_t i;
 
     if ((g_tick_ms - last_t) < OLED_UPDATE_MS) return;
     last_t = g_tick_ms;
 
     for (i = 0; i < BIN_COUNT; i++) {
-        snprintf(buf, sizeof(buf), "%s:%s %s",
-                 bin_name[i],
-                 g_bin[i].open ? "OPEN " : "CLOSD",
-                 g_bin[i].full ? "FULL" : "    ");
+        if (g_bin[i].full)       state = "FULL";
+        else if (g_bin[i].open)  state = "OPEN";
+        else                     state = "CLSD";
+
+        snprintf(buf, sizeof(buf), "%s:%-4s %2dmm",
+                 bin_name[i], state, (int)g_bin[i].dist_mm);
         OLED_ShowString(0, (uint8_t)((i + 1) * 2), (uint8_t *)buf);
     }
 }
@@ -200,6 +206,7 @@ int main(void) {
         g_bin[i].open      = 0;
         g_bin[i].open_tick = 0;
         g_bin[i].full      = 0;
+        g_bin[i].dist_mm   = 99;
         LED_SetBinStatus(i + 1, 0);
     }
 
