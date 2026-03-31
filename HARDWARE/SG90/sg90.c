@@ -26,10 +26,10 @@ void SG90_Init(void) {
     tb.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &tb);
 
-    /* 四路 PWM，初始脉宽 1500us（90°） */
+    /* 四路 PWM，初始脉宽 500us（0°=开盖），与上电时桶盖实际状态一致，避免启动电流冲击 */
     oc.TIM_OCMode      = TIM_OCMode_PWM1;
     oc.TIM_OutputState = TIM_OutputState_Enable;
-    oc.TIM_Pulse       = 1500;
+    oc.TIM_Pulse       = SG90_PULSE_MIN;
     oc.TIM_OCPolarity  = TIM_OCPolarity_High;
 
     TIM_OC1Init(TIM3, &oc); TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
