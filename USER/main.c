@@ -156,12 +156,11 @@ static void OverflowProcess(void)
 }
 
 // OLED 显示刷新
-// 布局（128x64，每行8px，共8行）：
-//   第0行: "Smart Trash Bin"
-//   第2行: "Recycl:OPEN 25mm"  (或 CLSD/FULL + 2位mm距离)
-//   第4行: "Hazard:CLSD  8mm"
-//   第6行: "Kitch :FULL  3mm"
-//   第8行: "Other :CLSD 50mm"
+// 布局（128x64，16px字体，每行占2 page，共4行）：
+//   page 0-1: "Recycl:OPEN 25mm"
+//   page 2-3: "Hazard:CLSD  8mm"
+//   page 4-5: "Kitch :FULL  3mm"
+//   page 6-7: "Other :CLSD 50mm"
 static void OledUpdate(void)
 {
     static uint32_t last_t = 0;
@@ -179,7 +178,7 @@ static void OledUpdate(void)
 
         snprintf(buf, sizeof(buf), "%s:%-4s %2dmm",
                  bin_name[i], state, (int)g_bin[i].dist_mm);
-        OLED_ShowString(0, (uint8_t)((i + 1) * 2), (uint8_t *)buf);
+        OLED_ShowString(0, (uint8_t)(i * 2), (uint8_t *)buf);
     }
 }
 
