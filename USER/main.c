@@ -86,6 +86,7 @@ static void AutoCloseProcess(void)
         if (g_bin[i - 1].open) {
             if ((g_tick_ms - g_bin[i - 1].open_tick) >= LID_OPEN_MS) {
                 CloseBin(i);
+                return;   // 每次主循环只关一个桶，错开电流峰值
             }
         }
     }
@@ -109,7 +110,10 @@ static void VoiceProcess(void)
         OpenBin(1); OpenBin(2); OpenBin(3); OpenBin(4);
         break;
     case ASRPRO_CMD_CLOSE_ALL:
-        CloseBin(1); CloseBin(2); CloseBin(3); CloseBin(4);
+        CloseBin(1); delay_ms(200);
+        CloseBin(2); delay_ms(200);
+        CloseBin(3); delay_ms(200);
+        CloseBin(4);
         break;
     default: break;
     }
