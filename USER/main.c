@@ -48,14 +48,14 @@ static void OpenBin(uint8_t bin)
     if (bin < 1 || bin > BIN_COUNT) return;
     g_bin[bin - 1].open      = 1;
     g_bin[bin - 1].open_tick = g_tick_ms;
-    SG90_Open(bin);
+    // SG90_Open(bin);
 }
 
 static void CloseBin(uint8_t bin)
 {
     if (bin < 1 || bin > BIN_COUNT) return;
     g_bin[bin - 1].open = 0;
-    SG90_Close(bin);
+    // SG90_Close(bin);
 }
 
 // ----------------------------------------------------------------
@@ -182,13 +182,11 @@ static void OledUpdate(void)
     if ((g_tick_ms - last_t) < OLED_UPDATE_MS) return;
     last_t = g_tick_ms;
 
-    OLED_ShowString(0, 0, (uint8_t *)"Smart Trash Bin ");
-
     for (i = 0; i < BIN_COUNT; i++) {
         snprintf(buf, sizeof(buf), "%s:%s %s",
                  bin_name[i],
-                 g_bin[i].open ? "OPEN" : "CLSD",
-                 g_bin[i].full ? "FUL" : "   ");
+                 g_bin[i].open ? "OPEN " : "CLOSD",
+                 g_bin[i].full ? "FULL" : "    ");
         OLED_ShowString(0, (uint8_t)((i + 1) * 2), (uint8_t *)buf);
     }
 }
@@ -231,11 +229,19 @@ int main(void)
     OLED_Clear();
 
     while (1) {
-        IRProcess();
-        VoiceProcess();
-        KeyProcess();
-        AutoCloseProcess();
-        OverflowProcess();
+        // IRProcess();
+        // VoiceProcess();
+        // KeyProcess();
+        // AutoCloseProcess();
+        // OverflowProcess();
         OledUpdate();
+        SG90_SetAngle(1, 0); // 开桶
+        delay_ms(1000);
+        SG90_SetAngle(2, 0); // 开桶
+        delay_ms(1000);
+        SG90_SetAngle(3, 0); // 开桶
+        delay_ms(1000);
+        SG90_SetAngle(4, 0); // 开桶
+        delay_ms(1000);
     }
 }

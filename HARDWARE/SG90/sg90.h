@@ -2,27 +2,41 @@
 #define __SG90_H
 
 #include "stm32f10x.h"
-#include <stdint.h>
 #include "stm32f10x_tim.h"
 
-// 4路SG90舵机由TIM3 PWM驱动，50Hz（20ms周期），1us分辨率
-// 舵机1: PA6  TIM3_CH1  -> 可回收垃圾桶盖
-// 舵机2: PA7  TIM3_CH2  -> 有害垃圾桶盖
-// 舵机3: PB0  TIM3_CH3  -> 厨余垃圾桶盖
-// 舵机4: PB1  TIM3_CH4  -> 其他垃圾桶盖
-//
-// 脉宽范围：500us（0°）~ 2500us（180°）
+/* ---- 引脚宏定义 ---- */
+#define SG90_GPIO_CLK_A     RCC_APB2Periph_GPIOA
+#define SG90_GPIO_CLK_B     RCC_APB2Periph_GPIOB
+#define SG90_TIM_CLK        RCC_APB1Periph_TIM3
 
-// TIM3预分频：72MHz / 72 = 1MHz，ARR=19999 -> 50Hz
+#define SG90_1_PORT         GPIOA           /* TIM3_CH1 PA6 */
+#define SG90_1_PIN          GPIO_Pin_6
+
+#define SG90_2_PORT         GPIOA           /* TIM3_CH2 PA7 */
+#define SG90_2_PIN          GPIO_Pin_7
+
+#define SG90_3_PORT         GPIOB           /* TIM3_CH3 PB0 */
+#define SG90_3_PIN          GPIO_Pin_0
+
+#define SG90_4_PORT         GPIOB           /* TIM3_CH4 PB1 */
+#define SG90_4_PIN          GPIO_Pin_1
+
+/* ---- 定时器参数: 72MHz/72=1MHz, ARR=20000 → 50Hz ---- */
 #define SG90_TIM_PRESCALER  71
 #define SG90_TIM_PERIOD     19999
 
-#define SERVO_OPEN_ANGLE     0   // 开盖角度（度）
-#define SERVO_CLOSE_ANGLE   90   // 关盖角度（度）
+/* ---- 脉宽 / 角度范围 ---- */
+#define SG90_PULSE_MIN      500     /* 0°   → 500us  */
+#define SG90_PULSE_MAX      2500    /* 180° → 2500us */
+#define SG90_ANGLE_MIN      0
+#define SG90_ANGLE_MAX      180
 
-void SG90_Init(void);
-void SG90_SetAngle(uint8_t servo, uint8_t angle);  // servo: 1~4, angle: 0~180
-void SG90_Open(uint8_t servo);
-void SG90_Close(uint8_t servo);
+#define SERVO_CENTER        100
+#define SERVO_MIN           40
+#define SERVO_MAX           160
+
+void    SG90_Init(void);
+void    SG90_SetPulse(uint8_t ch, uint16_t pulse_us);   /* ch: 1~4 */
+void    SG90_SetAngle(uint8_t ch, uint8_t angle);       /* ch: 1~4, angle: 0~180 */
 
 #endif

@@ -27,12 +27,22 @@ Project File Date:  03/31/2026
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\Keil_MDK\ARM\ARMCC\Bin'
 Build target 'Target 1'
-compiling beep.c...
 compiling main.c...
+main.c(64): warning:  #177-D: function "IRProcess"  was declared but never referenced
+  static void IRProcess(void)
+main.c(82): warning:  #177-D: function "AutoCloseProcess"  was declared but never referenced
+  static void AutoCloseProcess(void)
+main.c(97): warning:  #177-D: function "VoiceProcess"  was declared but never referenced
+  static void VoiceProcess(void)
+main.c(121): warning:  #177-D: function "KeyProcess"  was declared but never referenced
+  static void KeyProcess(void)
+main.c(137): warning:  #177-D: function "OverflowProcess"  was declared but never referenced
+  static void OverflowProcess(void)
+main.c: 5 warnings, 0 errors
 linking...
-Program Size: Code=7644 RO-data=2856 RW-data=72 ZI-data=1696  
+Program Size: Code=5856 RO-data=2848 RW-data=68 ZI-data=1684  
 FromELF: creating hex file...
-"..\Object\smart_fan.axf" - 0 Error(s), 0 Warning(s).
+"..\Object\smart_fan.axf" - 0 Error(s), 5 Warning(s).
 
 <h2>Software Packages used:</h2>
 
