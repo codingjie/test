@@ -9,20 +9,20 @@ void SG90_Init(void)
     RCC_APB2PeriphClockCmd(SG90_GPIO_CLK, ENABLE);
     RCC_APB1PeriphClockCmd(SG90_TIM_CLK,  ENABLE);
 
-    /* PA6 复用推挽（TIM3_CH1 PWM） */
+    // PA6 复用推挽（TIM3_CH1 PWM）
     gi.GPIO_Pin   = SG90_PIN;
     gi.GPIO_Mode  = GPIO_Mode_AF_PP;
     gi.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(SG90_PORT, &gi);
 
-    /* TIM3 时基: 50Hz */
+    // TIM3 时基: 50Hz
     tb.TIM_Period        = SG90_TIM_PERIOD;
     tb.TIM_Prescaler     = SG90_TIM_PRESCALER;
     tb.TIM_ClockDivision = TIM_CKD_DIV1;
     tb.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &tb);
 
-    /* CH1 PWM 初始关盖 90° */
+    // CH1 PWM 初始关盖 90°
     oc.TIM_OCMode      = TIM_OCMode_PWM1;
     oc.TIM_OCPolarity  = TIM_OCPolarity_High;
     oc.TIM_OutputState = TIM_OutputState_Enable;
@@ -45,6 +45,7 @@ void SG90_SetAngle(uint8_t angle)
 {
     uint16_t pulse;
     if (angle > SG90_ANGLE_MAX) angle = SG90_ANGLE_MAX;
+    // 线性映射: 0° → 500us, 180° → 2500us
     pulse = SG90_PULSE_MIN + (uint16_t)((uint32_t)angle * 2000 / 180);
     SG90_SetPulse(pulse);
 }

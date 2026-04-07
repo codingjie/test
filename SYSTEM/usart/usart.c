@@ -1,10 +1,8 @@
 #include "usart.h"
 #include <stdio.h>
 
-/*
- * USART1: PA9(TX) PA10(RX)  115200-8N1  调试串口
- * 初始化后 printf/fputc 重定向到 USART1。
- */
+// USART1: PA9(TX) PA10(RX)  115200-8N1  调试串口
+// 初始化后 printf/fputc 重定向到 USART1。
 
 void USART1_Init(uint32_t baudrate)
 {
@@ -13,13 +11,13 @@ void USART1_Init(uint32_t baudrate)
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1, ENABLE);
 
-    /* PA9: USART1_TX 复用推挽 */
+    // PA9: USART1_TX 复用推挽
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    /* PA10: USART1_RX 浮空输入 */
+    // PA10: USART1_RX 浮空输入
     GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_10;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
@@ -48,7 +46,7 @@ void USART1_SendString(const char *str)
     }
 }
 
-/* 重定向 printf → USART1 */
+// 重定向 printf → USART1
 int fputc(int ch, FILE *f)
 {
     (void)f;

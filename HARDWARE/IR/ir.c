@@ -2,34 +2,32 @@
 #include "delay.h"
 #include "sys.h"
 
-/*
- * 红外发送  PA1  TIM2_CH2  38kHz PWM 载波
- *   TIM2: 72MHz / (PSC+1) / (ARR+1) = 38kHz
- *         PSC=0, ARR=1893 → 72000000/1894 ≈ 38016 Hz
- *         占空比 50%: CCR = 947
- *   调制方式: 开关 TIM2 CH2 输出使能来发送"有载波/无载波"
- *
- * 红外接收  PB8  EXTI8（EXTI9_5_IRQHandler）
- *   接收模块输出低有效（有38kHz信号时输出低电平）
- *   → 上升沿=结束，下降沿=开始
- *   解码: NEC 协议
- *     引导码: 9ms低 + 4.5ms高
- *     数据0:  560us低 + 560us高
- *     数据1:  560us低 + 1690us高
- *
- * 注: 使用 g_tick_ms 做时间基准，需先调用 App_TickInit()。
- */
+// 红外发送  PA1  TIM2_CH2  38kHz PWM 载波
+//   TIM2: 72MHz / (PSC+1) / (ARR+1) = 38kHz
+//         PSC=0, ARR=1893 → 72000000/1894 ≈ 38016 Hz
+//         占空比 50%: CCR = 947
+//   调制方式: 开关 TIM2 CH2 输出使能来发送"有载波/无载波"
+//
+// 红外接收  PB8  EXTI8（EXTI9_5_IRQHandler）
+//   接收模块输出低有效（有38kHz信号时输出低电平）
+//   → 上升沿=结束，下降沿=开始
+//   解码: NEC 协议
+//     引导码: 9ms低 + 4.5ms高
+//     数据0:  560us低 + 560us高
+//     数据1:  560us低 + 1690us高
+//
+// 注: 使用 g_tick_ms 做时间基准，需先调用 App_TickInit()。
 
-/* ---- NEC 发送 ---- */
+// ---- NEC 发送 ----
 
-static void ir_mark(uint32_t us)    /* 发射载波 */
+static void ir_mark(uint32_t us)    // 发射载波
 {
     TIM_CCxCmd(TIM2, TIM_Channel_2, TIM_CCx_Enable);
     delay_us(us);
     TIM_CCxCmd(TIM2, TIM_Channel_2, TIM_CCx_Disable);
 }
 
-static void ir_space(uint32_t us)   /* 无载波 */
+static void ir_space(uint32_t us)   // 无载波
 {
     TIM_CCxCmd(TIM2, TIM_Channel_2, TIM_CCx_Disable);
     delay_us(us);
@@ -50,11 +48,11 @@ void IR_SendNEC(uint8_t addr, uint8_t cmd)
     uint8_t  data[4] = { addr, (uint8_t)~addr, cmd, (uint8_t)~cmd };
     uint8_t  i, j;
 
-    /* 引导码 */
+    // 引导码
     ir_mark(9000);
     ir_space(4500);
 
-    /* 32位数据 */
+    // 32位数据
     for (j = 0; j < 4; j++) {
         for (i = 0; i < 8; i++) {
             ir_mark(560);
@@ -65,18 +63,18 @@ void IR_SendNEC(uint8_t addr, uint8_t cmd)
         }
     }
 
-    /* 停止位 */
+    // 停止位
     ir_mark(560);
     ir_space(560);
 }
 
-/* ---- NEC 接收 ---- */
+// ---- NEC 接收 ----
 
 static volatile uint8_t  rx_addr    = 0;
 static volatile uint8_t  rx_cmd     = 0;
 static volatile uint8_t  rx_ready   = 0;
 
-/* 内部状态机 */
+// 内部状态机
 #define RX_IDLE     0
 #define RX_LEAD_L   1
 #define RX_LEAD_H   2
@@ -91,21 +89,21 @@ void IR_RX_IRQHandler(void)
 {
     uint32_t now = g_tick_ms;
     uint32_t dt;
-    uint8_t  level = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8); /* 中断后当前电平 */
+    uint8_t  level = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8); // 中断后当前电平
 
     dt = now - rx_tick;
     rx_tick = now;
 
     switch (rx_state) {
     case RX_IDLE:
-        if (level == 0) {              /* 下降沿：开始引导低 */
+        if (level == 0) {              // 下降沿：开始引导低
             rx_state = RX_LEAD_L;
         }
         break;
 
     case RX_LEAD_L:
-        if (level == 1) {              /* 上升沿：引导低结束 */
-            if (dt >= 8 && dt <= 10)   /* 约9ms */
+        if (level == 1) {              // 上升沿：引导低结束
+            if (dt >= 8 && dt <= 10)   // 约9ms
                 rx_state = RX_LEAD_H;
             else
                 rx_state = RX_IDLE;
@@ -113,8 +111,8 @@ void IR_RX_IRQHandler(void)
         break;
 
     case RX_LEAD_H:
-        if (level == 0) {              /* 下降沿：引导高结束 */
-            if (dt >= 4 && dt <= 5) {  /* 约4.5ms */
+        if (level == 0) {              // 下降沿：引导高结束
+            if (dt >= 4 && dt <= 5) {  // 约4.5ms
                 rx_state   = RX_DATA;
                 rx_bits    = 0;
                 rx_bit_cnt = 0;
@@ -125,14 +123,14 @@ void IR_RX_IRQHandler(void)
         break;
 
     case RX_DATA:
-        if (level == 1) {              /* 上升沿：低电平脉冲结束（均约560us，忽略） */
-            /* do nothing */
-        } else {                       /* 下降沿：高电平间隔结束，判断0/1 */
+        if (level == 1) {              // 上升沿：低电平脉冲结束（均约560us，忽略）
+            // do nothing
+        } else {                       // 下降沿：高电平间隔结束，判断0/1
             if (rx_bit_cnt < 32) {
                 rx_bits >>= 1;
-                if (dt >= 1 && dt <= 1)       /* 560us ≈ 1ms → 逻辑0 */
+                if (dt >= 1 && dt <= 1)       // 560us ≈ 1ms → 逻辑0
                     rx_bits &= ~(1u << 31);
-                else if (dt >= 2)              /* 1690us ≈ 2ms → 逻辑1 */
+                else if (dt >= 2)              // 1690us ≈ 2ms → 逻辑1
                     rx_bits |= (1u << 31);
                 rx_bit_cnt++;
             }
@@ -162,7 +160,7 @@ uint8_t IR_RX_HasData(void)
 uint8_t IR_RX_GetAddr(void) { return rx_addr; }
 uint8_t IR_RX_GetCmd(void)  { return rx_cmd;  }
 
-/* ---- 初始化 ---- */
+// ---- 初始化 ----
 
 void IR_Init(void)
 {
@@ -172,7 +170,7 @@ void IR_Init(void)
     EXTI_InitTypeDef        ei;
     NVIC_InitTypeDef        ni;
 
-    /* --- TX: PA1 复用推挽 TIM2_CH2 --- */
+    // --- TX: PA1 复用推挽 TIM2_CH2 ---
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,  ENABLE);
 
@@ -181,7 +179,7 @@ void IR_Init(void)
     gi.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &gi);
 
-    /* TIM2 38kHz: PSC=0, ARR=1893 → 72MHz/1894≈38kHz, CCR=947(50%) */
+    // TIM2 38kHz: PSC=0, ARR=1893 → 72MHz/1894≈38kHz, CCR=947(50%)
     tb.TIM_Period        = 1893;
     tb.TIM_Prescaler     = 0;
     tb.TIM_ClockDivision = TIM_CKD_DIV1;
@@ -196,9 +194,9 @@ void IR_Init(void)
     TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Enable);
     TIM_ARRPreloadConfig(TIM2, ENABLE);
     TIM_Cmd(TIM2, ENABLE);
-    TIM_CCxCmd(TIM2, TIM_Channel_2, TIM_CCx_Disable); /* 默认关闭载波 */
+    TIM_CCxCmd(TIM2, TIM_Channel_2, TIM_CCx_Disable); // 默认关闭载波
 
-    /* --- RX: PB8 上拉输入 + EXTI8 双边沿 --- */
+    // --- RX: PB8 上拉输入 + EXTI8 双边沿 ---
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
     gi.GPIO_Pin  = GPIO_Pin_8;

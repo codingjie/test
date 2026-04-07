@@ -29,9 +29,9 @@ uint8_t KEY_Scan(void)
     cur[3] = KEY4_READ();
 
     for (i = 0; i < 4; i++) {
-        if (cur[i] == 1 && last[i] == 0) {        /* 按下（上升沿） */
+        if (cur[i] == 1 && last[i] == 0) {        // 按下（上升沿）
             tick0[i] = g_tick_ms;
-        } else if (cur[i] == 0 && last[i] == 1) { /* 松开（下降沿） */
+        } else if (cur[i] == 0 && last[i] == 1) { // 松开（下降沿）
             if ((g_tick_ms - tick0[i]) >= 20) ret = i + 1;
         }
         last[i] = cur[i];

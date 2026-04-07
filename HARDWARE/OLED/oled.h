@@ -5,8 +5,8 @@
 
 #define GPIO_PORT_I2C	GPIOB
 #define RCC_I2C_PORT 	RCC_APB2Periph_GPIOB
-#define I2C_SCL_PIN		GPIO_Pin_6   /* PB6: OLED SCL */
-#define I2C_SDA_PIN		GPIO_Pin_7   /* PB7: OLED SDA */
+#define I2C_SCL_PIN		GPIO_Pin_6   // PB6: OLED SCL
+#define I2C_SDA_PIN		GPIO_Pin_7   // PB7: OLED SDA
 
 #define OLED_W_SCL(x) GPIO_WriteBit(GPIO_PORT_I2C, I2C_SCL_PIN, (BitAction)(x))
 #define OLED_W_SDA(x) GPIO_WriteBit(GPIO_PORT_I2C, I2C_SDA_PIN, (BitAction)(x))

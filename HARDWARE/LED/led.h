@@ -3,18 +3,16 @@
 
 #include "stm32f10x.h"
 
-/*
- * 绿色LED1  PA0  上电常亮
- * 绿色LED2  PB0  备用
- * 蓝色LED1  PA6  Z轴积分达5m亮（注：PA6同时用作TIM3_CH1舵机PWM，
- *                调用SG90_Init后该引脚切换为复用推挽，LED不再可控）
- * 蓝色LED2  PB1  备用
- * 黄色LED   PA2  1Hz闪烁（由主循环控制）
- * 红色LED1  PA3  测试模式按键后亮
- * 红色LED2  PA4  备用
- *
- * 所有LED 高电平亮。
- */
+// 绿色LED1  PA0  上电常亮
+// 绿色LED2  PB0  备用
+// 蓝色LED1  PA6  Z轴积分达5m亮（注：PA6同时用作TIM3_CH1舵机PWM，
+//                调用SG90_Init后该引脚切换为复用推挽，LED不再可控）
+// 蓝色LED2  PB1  备用
+// 黄色LED   PA2  1Hz闪烁（由主循环控制）
+// 红色LED1  PA3  测试模式按键后亮
+// 红色LED2  PA4  备用
+//
+// 所有LED 高电平亮。
 
 #define LED_GREEN1_ON()    GPIO_SetBits(GPIOA,   GPIO_Pin_0)
 #define LED_GREEN1_OFF()   GPIO_ResetBits(GPIOA, GPIO_Pin_0)
