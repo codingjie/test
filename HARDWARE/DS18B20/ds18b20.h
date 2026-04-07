@@ -4,12 +4,11 @@
 #include "stm32f10x.h"
 #include <stdint.h>
 
-/* DS18B20 单总线温度传感器
- * PA1: 单总线数据，需外接 4.7kΩ 上拉至 VCC
- */
-#define DS18B20_GPIO_PORT   GPIOA
-#define DS18B20_GPIO_CLK    RCC_APB2Periph_GPIOA
-#define DS18B20_GPIO_PIN    GPIO_Pin_1
+// DS18B20 单总线温度传感器
+// PB0: 单总线数据，需外接 4.7kΩ 上拉至 VCC
+#define DS18B20_GPIO_PORT   GPIOB
+#define DS18B20_GPIO_CLK    RCC_APB2Periph_GPIOB
+#define DS18B20_GPIO_PIN    GPIO_Pin_0
 
 #define DS18B20_OUT_HIGH()  GPIO_SetBits(DS18B20_GPIO_PORT,   DS18B20_GPIO_PIN)
 #define DS18B20_OUT_LOW()   GPIO_ResetBits(DS18B20_GPIO_PORT, DS18B20_GPIO_PIN)
