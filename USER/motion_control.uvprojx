@@ -190,7 +190,7 @@
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>0</useUlib>
+            <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\STM32F10x_FWLib\inc;..\USER;..\SYSTEM\delay;..\SYSTEM\sys;..\HARDWARE\OLED;..\HARDWARE\BEEP;..\HARDWARE\KEY;..\HARDWARE\SG90</IncludePath>
+              <IncludePath>..\CORE;..\STM32F10x_FWLib\inc;..\USER;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\SYSTEM\fatfs;..\HARDWARE\OLED;..\HARDWARE\BEEP;..\HARDWARE\KEY;..\HARDWARE\SG90;..\HARDWARE\IR;..\HARDWARE\JY61P;..\HARDWARE\LED;..\HARDWARE\RELAY;..\HARDWARE\SD</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -423,6 +423,31 @@
               <FileName>sg90.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\SG90\sg90.c</FilePath>
+            </File>
+            <File>
+              <FileName>ir.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\IR\ir.c</FilePath>
+            </File>
+            <File>
+              <FileName>jy61p.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\JY61P\jy61p.c</FilePath>
+            </File>
+            <File>
+              <FileName>led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\LED\led.c</FilePath>
+            </File>
+            <File>
+              <FileName>relay.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\RELAY\relay.c</FilePath>
+            </File>
+            <File>
+              <FileName>sd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\SD\sd.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -555,14 +580,29 @@
               <FilePath>..\SYSTEM\delay\delay.c</FilePath>
             </File>
             <File>
-              <FileName>adc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SYSTEM\adc\adc.c</FilePath>
-            </File>
-            <File>
               <FileName>sys.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SYSTEM\sys\sys.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\usart\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>cc936.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\fatfs\cc936.c</FilePath>
+            </File>
+            <File>
+              <FileName>diskio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\fatfs\diskio.c</FilePath>
+            </File>
+            <File>
+              <FileName>ff.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\fatfs\ff.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -7,8 +7,12 @@
 ..\object\oled.o: ..\USER\stm32f10x_conf.h
 ..\object\oled.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
 ..\object\oled.o: ..\USER\stm32f10x.h
+..\object\oled.o: ..\STM32F10x_FWLib\inc\stm32f10x_dma.h
+..\object\oled.o: ..\STM32F10x_FWLib\inc\stm32f10x_exti.h
 ..\object\oled.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
 ..\object\oled.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\oled.o: ..\STM32F10x_FWLib\inc\stm32f10x_sdio.h
+..\object\oled.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h
 ..\object\oled.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 ..\object\oled.o: ..\STM32F10x_FWLib\inc\misc.h
 ..\object\oled.o: ..\HARDWARE\OLED\oledfont.h

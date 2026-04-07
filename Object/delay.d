@@ -8,8 +8,11 @@
 ..\object\delay.o: ..\USER\stm32f10x_conf.h
 ..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
 ..\object\delay.o: ..\USER\stm32f10x.h
+..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_dma.h
+..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_exti.h
 ..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
 ..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_sdio.h
+..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h
 ..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 ..\object\delay.o: ..\STM32F10x_FWLib\inc\misc.h
-..\object\delay.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h

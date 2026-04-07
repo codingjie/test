@@ -7,9 +7,14 @@
 ..\object\stm32f10x_it.o: stm32f10x_conf.h
 ..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
 ..\object\stm32f10x_it.o: ..\USER\stm32f10x.h
+..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_dma.h
+..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_exti.h
 ..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
 ..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_sdio.h
+..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h
 ..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 ..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\misc.h
-..\object\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h
 ..\object\stm32f10x_it.o: ..\SYSTEM\sys\sys.h
+..\object\stm32f10x_it.o: ..\HARDWARE\IR\ir.h
+..\object\stm32f10x_it.o: ..\HARDWARE\JY61P\jy61p.h

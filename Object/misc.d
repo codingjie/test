@@ -7,7 +7,11 @@
 ..\object\misc.o: ..\USER\stm32f10x_conf.h
 ..\object\misc.o: ..\STM32F10x_FWLib\inc\stm32f10x_dbgmcu.h
 ..\object\misc.o: ..\USER\stm32f10x.h
+..\object\misc.o: ..\STM32F10x_FWLib\inc\stm32f10x_dma.h
+..\object\misc.o: ..\STM32F10x_FWLib\inc\stm32f10x_exti.h
 ..\object\misc.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
 ..\object\misc.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\object\misc.o: ..\STM32F10x_FWLib\inc\stm32f10x_sdio.h
+..\object\misc.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h
 ..\object\misc.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 ..\object\misc.o: ..\STM32F10x_FWLib\inc\misc.h
